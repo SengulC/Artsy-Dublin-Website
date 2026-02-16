@@ -43,13 +43,13 @@ Table events {
   location integer [ref: > eventLocation.locationId]//venue takes priority, location as fallback
   
   //ticket & price
-  minprice decimal(10,2) [default:0]
+  minprice decimal(10,2) [default:0]//use decimal instead of float for accuracy
   maxprice decimal(10,2) [default:0]//api gives back a price-range object
   currency integer [ref: > currency.currencyId]
   ticketlink varchar 
 
   //performance data
-  viewCount integer [default: 0] //acks how many times an event page has been viewed
+  viewCount integer [default: 0] //tracks how many times an event page has been viewed
 
   //metadata
   sourcePlatform varchar [ref: > sourcePlatform.sourceId]
@@ -85,7 +85,7 @@ Table posts {
   updatedAt timestamp
 }
 Table postImages{
-  imageId integer [pk, increment]
+  postImageId integer [pk, increment]
   imageUrl varchar(255)
   postId integer [ref: > posts.postId]
 }
