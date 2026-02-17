@@ -1,4 +1,4 @@
---straightly exported from dbdiagrm.io, fixes needed 
+--straightly exported from dbdiagrm.io, fixes needed, this database contains all REQ priorities
 
 CREATE TABLE `users` (
   `userId` integer PRIMARY KEY AUTO_INCREMENT,
