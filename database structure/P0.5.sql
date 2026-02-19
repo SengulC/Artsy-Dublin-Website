@@ -1,20 +1,21 @@
 CREATE TABLE `events` (
-  `eventId` integer PRIMARY KEY AUTO_INCREMENT,
+  -- `eventId` integer PRIMARY KEY AUTO_INCREMENT,
+  `eventUrl` varchar(255),
+  `date` varchar(255),
   `title` varchar(255) NOT NULL,
-  `description` varchar(255),
-  `startDateTime` timestamp NOT NULL,
-  `endDateTime` timestamp,
-  `venue` integer,
-  `venueUrl` integer,
-  `location` integer,
-  `minprice` decimal(10,2) DEFAULT 0,
-  `maxprice` decimal(10,2) DEFAULT 0,
-  `currency` integer,
-  `ticketlink` varchar(255),
-  `viewCount` integer DEFAULT 0,
-  `sourcePlatform` integer,
-  `createdAt` timestamp DEFAULT (now()),
-  `updatedAt` timestamp
+  `venue` varchar(255),
+  -- `description` varchar(255),
+  -- `startDateTime` timestamp NOT NULL,
+  -- `endDateTime` timestamp,
+  -- `venueUrl` varchar(255),
+  -- `location` integer,
+  -- `minprice` decimal(10,2) DEFAULT 0,
+  -- `maxprice` decimal(10,2) DEFAULT 0,
+  -- `currency` integer,
+  -- `viewCount` integer DEFAULT 0,
+  -- `sourcePlatform` integer,
+  -- `createdAt` timestamp DEFAULT (now()),
+  -- `updatedAt` timestamp
 );
 
 CREATE TABLE `eventCategories` (

@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require('mysql2');
+// const mysql = require('mysql2');
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
@@ -20,10 +20,10 @@ app.get("/api/theatre-events", async (req, res) => {
 
     const events = response.data?._embedded?.events || [];
     const cleanData = events.map((e) => ({
-      name: e.name,
+      title: e.name,
       date: e.dates.start.localDate,
-      url: e.url,
-      venue: e._embedded?.venues[0]?.name,
+      eventUrl: e.url,
+      venue: e._embedded?.venues[0]?.title,
     }));
 
     res.json(cleanData);
