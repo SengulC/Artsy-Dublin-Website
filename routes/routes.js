@@ -1,3 +1,6 @@
+
+//map of all URLs in application
+//defines what happens when a user visits a specific URL, connecting each URL to the correct controller method
 const express        = require("express");
 const multer         = require("multer");
 const path           = require("path");
@@ -7,7 +10,7 @@ const diaryController = require("../controllers/diaryController");
 
 const router = express.Router();
 
-// Multer config — stores uploaded images in public/uploads/
+// Multer config — stores uploaded images in public/uploads/, Multer is a Node.js package that handles file uploads, sets size lims,unique filename 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, "../public/uploads")),
   filename:    (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),

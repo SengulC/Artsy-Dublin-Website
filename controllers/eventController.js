@@ -1,9 +1,17 @@
+//middleman between  routes and models
+//user visits a URL like /events, the controller handles what actually happens e.g.:
+//Calls the API service to fetch
+//Calls the event model to save those events to the database and read them back
+//Passes the data to the correct EJS view=ui
+//handles Home page, All events page, Event detail page
+
+
 const eventModel = require("../models/eventModel");
 const apiService = require("../services/apiService");
 
 class EventController {
   /**
-   * Home page — fetches & caches events, then shows them.
+   * Home page - fetches & caches events, then shows them
    */
   async getHomePage(req, res) {
     try {
@@ -13,7 +21,7 @@ class EventController {
         apiService.fetchNowShowingFilms(),
       ]);
 
-      // categoryId 2 = Theatre, 3 = Film (from our seed data)
+      // categoryId 2 = Theatre, 3 = Film 
       await eventModel.saveEvents(theatreEvents, 2);
       await eventModel.saveEvents(films, 3);
 
@@ -27,9 +35,7 @@ class EventController {
     }
   }
 
-  /**
-   * All events page with optional category filter.
-   */
+  //All events page with optional category filter
   async getAllEvents(req, res) {
     try {
       const { categoryId } = req.query;
@@ -43,9 +49,7 @@ class EventController {
     }
   }
 
-  /**
-   * Single event detail page.
-   */
+  // Single event detail page
   async getEventDetail(req, res) {
     try {
       const { eventId } = req.params;

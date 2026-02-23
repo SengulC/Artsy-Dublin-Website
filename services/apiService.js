@@ -1,13 +1,13 @@
 const axios   = require("axios");
 require("dotenv").config();
 
-// --- Ticketmaster client ---
+// Ticketmaster 
 const ticketmasterClient = axios.create({
   baseURL: "https://app.ticketmaster.com/discovery/v2/",
   params:  { apikey: process.env.Ticketmaster_API_KEY },
 });
 
-// --- TMDB client ---
+// TMDB 
 const tmdbClient = axios.create({
   baseURL: "https://api.themoviedb.org/3",
   headers: {
@@ -17,7 +17,7 @@ const tmdbClient = axios.create({
 });
 
 /**
- * Fetch upcoming theatre/music events in Ireland from Ticketmaster.
+ * Fetch upcoming theatre/music events in Ireland from Ticketmaster
  * @param {string} genreId - Ticketmaster genre ID
  * @param {string} keyword - optional keyword filter
  * @returns {Array} normalised event objects
@@ -50,7 +50,7 @@ async function fetchTicketmasterEvents(genreId = "KnvZfZ7v7l1", keyword = "") {
 }
 
 /**
- * Fetch films currently showing in Irish cinemas from TMDB.
+ * Fetch films currently showing in Irish cinemas from TMDB
  * @returns {Array} normalised event objects
  */
 async function fetchNowShowingFilms() {

@@ -1,3 +1,5 @@
+//responsible for all database operations related to the art diary
+//Any time the app needs to talk to the diary_entries or comments tables in MySQL it goes through this file
 const mysql    = require("mysql2/promise");
 const DBCONFIG = require("../config/dbconfig");
 

@@ -1,11 +1,12 @@
+
+//middleman between your routes and your diary model, same as event logic
+
 const diaryModel = require("../models/diaryModel");
 const eventModel = require("../models/eventModel");
 const path       = require("path");
 
 class DiaryController {
-  /**
-   * Show all diary entries.
-   */
+  // Show all diary entries
   async getDiary(req, res) {
     try {
       const entries = await diaryModel.getAllEntries();
@@ -16,9 +17,7 @@ class DiaryController {
     }
   }
 
-  /**
-   * Show a single diary entry with its comments.
-   */
+  //Show a single diary entry with its comments
   async getDiaryEntry(req, res) {
     try {
       const { entryId } = req.params;
@@ -33,9 +32,7 @@ class DiaryController {
     }
   }
 
-  /**
-   * Show the "log attendance" form for an event.
-   */
+  //Show the "log attendance" form for an event
   async getLogForm(req, res) {
     try {
       const { eventId } = req.params;
@@ -48,9 +45,7 @@ class DiaryController {
     }
   }
 
-  /**
-   * Handle diary entry form submission (with optional image upload).
-   */
+  // Handle diary entry form submission (with optional image upload)
   async postDiaryEntry(req, res) {
     try {
       const { eventId, rating, reviewText } = req.body;
@@ -90,7 +85,7 @@ class DiaryController {
   }
 
   /**
-   * Handle comment submission.
+   * Handle comment submission
    */
   async postComment(req, res) {
     try {

@@ -1,10 +1,12 @@
+//responsible for all database operations related to events
+//eg Any time the app needs to talk to the events table in MySQL it goes through this file
+//Reading, writing events from/to the database | Reading categories 
+
 const mysql    = require("mysql2/promise");
 const DBCONFIG = require("../config/dbconfig");
 
 class EventModel {
-  /**
-   * Get all events, optionally filtered by category.
-   */
+  //Get all events, optionally filtered by category
   async getAllEvents(categoryId = null) {
     const connection = await mysql.createConnection(DBCONFIG);
     try {
@@ -27,9 +29,7 @@ class EventModel {
     }
   }
 
-  /**
-   * Get a single event by ID.
-   */
+  // Get a single event by ID
   async getEventById(eventId) {
     const connection = await mysql.createConnection(DBCONFIG);
     try {
@@ -45,8 +45,8 @@ class EventModel {
   }
 
   /**
-   * Save an array of normalised events to the database.
-   * Uses INSERT IGNORE to avoid duplicates on title+date.
+   * Save an array of normalised events to the database
+   * Uses INSERT IGNORE to avoid duplicates on title+date
    */
   async saveEvents(events, categoryId) {
     const connection = await mysql.createConnection(DBCONFIG);
@@ -75,9 +75,7 @@ class EventModel {
     }
   }
 
-  /**
-   * Get all categories.
-   */
+  //Get all categories
   async getAllCategories() {
     const connection = await mysql.createConnection(DBCONFIG);
     try {

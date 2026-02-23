@@ -1,3 +1,5 @@
+
+//set up express etc
 require("dotenv").config();
 
 const express = require("express");
@@ -12,13 +14,13 @@ const PORT = process.env.PORT || 8085;
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Middleware
+// configuration of Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Routes
+// connect Routes
 app.use("/", routes);
 
 // 404 handler
@@ -35,6 +37,7 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something went wrong. Please try again.");
 });
 
+//start listening at port 8085
 app.listen(PORT, () => {
   console.log(`Artsy Dublin running at http://localhost:${PORT}`);
 });
