@@ -9,5 +9,5 @@ const usersRoute = require("./routes/users")
 app.use("/users", usersRoute);
 
 app.listen(3005, () => {
-    console.log("Server running on port 3005.")
+    console.log("Server running on http://localhost:3005")
 } )
