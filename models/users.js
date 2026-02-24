@@ -10,7 +10,8 @@ const mysql = require("mysql2/promise");
 
 // userModel defines all the functions we need to use related to users
 class usersModel{
-
+    
+    //get all the users
     async getUsersPool(){
         // Connect to the database
         const connection = await mysql.createConnection(dbconfig);
