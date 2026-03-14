@@ -1,5 +1,5 @@
 -- Post Types
-INSERT INTO postTypes (typeId, typeName) VALUES
+INSERT INTO postType (typeId, typeName) VALUES
 (1, 'post'),
 (2, 'comment');
 
