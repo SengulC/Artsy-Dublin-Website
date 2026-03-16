@@ -89,7 +89,28 @@ async function asyncCall() {
 }
 // asyncCall(); //-- uncomment for above testing
 
+//get event details by its id
+async function getEventById(eventId) {
+    // Connect to the database
+    let que;//mysql query
+    try{
+        que = await pool.get_connection();
+        const results = await que
+        .select('*')
+        .where('events.eventId', eventId)
+        .get('events');
+        return results[0] || null;
+    }
+    catch(err){
+        console.error("Query Error: " + err);
+    }
+    finally{
+        if (que) que.release();
+    }
+}
+
 module.exports = {
     get,
-    fetchAndPopulate
+    fetchAndPopulate,
+    getEventById
 };

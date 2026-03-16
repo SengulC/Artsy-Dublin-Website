@@ -6,5 +6,6 @@ const controller = require("../controllers/eventsController");
 
 router.get("/", controller.get);
 router.get("/update", controller.update);
+router.get("/:eventid", controller.getEventById);
 
 module.exports = router;
