@@ -4,14 +4,14 @@ const path = require('path');
 const dotenv = require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const axios = require('axios');
 
-// Make mysql connection
+// Import mysql and configure file
+const dbconfig = require("../utils/dbconfig");
+const queryBuilder = require("node-querybuilder");
 const mysql = require('mysql2');
-const connection = mysql.createConnection({
-    host: 'localhost',     
-    user: 'root',          
-    password: dotenv.parsed.DB_PASSWORD,          
-    database: dotenv.parsed.DB_NAME     
-});
+
+// one pool shared across all methods. never recreated per request
+const pool = new queryBuilder(dbconfig, "mysql", "pool");
+
 
 // Connect to the database
 connection.connect(error => {
@@ -89,7 +89,28 @@ async function asyncCall() {
 }
 // asyncCall(); //-- uncomment for above testing
 
+//get event details by its id
+async function getEventById(eventId) {
+    // Connect to the database
+    let que;//mysql query
+    try{
+        que = await pool.get_connection();
+        const results = await que
+        .select('*')
+        .where('events.eventId', eventId)
+        .get('events');
+        return results[0] || null;
+    }
+    catch(err){
+        console.error("Query Error: " + err);
+    }
+    finally{
+        if (que) que.release();
+    }
+}
+
 module.exports = {
     get,
-    fetchAndPopulate
+    fetchAndPopulate,
+    getEventById
 };
