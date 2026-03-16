@@ -1,4 +1,4 @@
-1. first make sure the database structure follows these two files:
+1. first make sure the database structure follows this files:
     - "database structure/add_tables_all_at_once.sql"
 2. you can use this file to add fake data
     - "database structure/add_fake_data_all_at_once.sql"
