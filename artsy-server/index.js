@@ -13,8 +13,8 @@ app.use("/events", eventsRoute);
 const usersRoute = require("./routes/users")
 app.use("/users", usersRoute);
 
-const postsRoute = require("./routes/posts")
-app.use("/posts", postsRoute);
+// const postsRoute = require("./routes/posts")
+// app.use("/posts", postsRoute);
 
 app.listen(3005, () => {
     console.log("Server running on http://localhost:3005")
