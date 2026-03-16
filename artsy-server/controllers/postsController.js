@@ -157,12 +157,15 @@ class postsController{
     //C2. edit post content
     async editPost(req, res){
         try {
+            const userId = 1; // TODO: replace with req.session.userId
             const { content } = req.body;
-            await postsModel.editPost(req.params.postId, content);
+            await postsModel.editPost(req.params.postId, userId, content);
             res.json({ message: 'Post updated' });
         } catch (err) {
             if (err.message === 'Post-not-found') {
                 res.status(404).json({ error: 'Post not found' });
+            } else if (err.message === 'Not-authorized') {
+                res.status(403).json({ error: 'You can only edit your own posts' });
             } else {
                 console.error(err);
                 res.status(500).json({ error: 'Server error' });
@@ -173,11 +176,14 @@ class postsController{
     //D1. soft-delete a post or comment (and its nested comments)
     async deletePost(req, res){
         try {
-            await postsModel.deletePost(req.params.postId);
+            const userId = 1; // TODO: replace with req.session.userId
+            await postsModel.deletePost(req.params.postId, userId);
             res.json({ message: 'Post deleted' });
         } catch (err) {
             if (err.message === 'Post-not-found') {
                 res.status(404).json({ error: 'Post not found' });
+            } else if (err.message === 'Not-authorized') {
+                res.status(403).json({ error: 'You can only delete your own posts' });
             } else {
                 console.error(err);
                 res.status(500).json({ error: 'Server error' });

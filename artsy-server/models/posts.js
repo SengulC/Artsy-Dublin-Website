@@ -169,7 +169,7 @@ class postsModel {
             que = await pool.getConnection();
 
             // check if a record already exists (active or soft-deleted)
-            const [existing] = await que.query(
+            const [record] = await que.query(
                 `SELECT eventAttendId, isDeleted 
                 FROM eventattended 
                 WHERE userId = ? 
@@ -177,15 +177,15 @@ class postsModel {
                 `,[userId, eventId]
             );
 
-            if (existing[0]) {
-                if (existing[0].isDeleted === 0) throw new Error('already-attended');
+            if (record[0]) {
+                if (record[0].isDeleted === 0) throw new Error('already-attended');
 
                 // restore the soft-deleted record with new date, clear old rating
                 await que.query(
                     `UPDATE eventattended 
                     SET isDeleted = 0, attendedAt = ?, rating = NULL 
                     WHERE eventAttendId = ?
-                    `,[attendedAt, existing[0].eventAttendId]
+                    `,[attendedAt, record[0].eventAttendId]
                 );
 
                 await que.query(
@@ -195,7 +195,7 @@ class postsModel {
                     `,[eventId]
                 );
 
-                return existing[0].eventAttendId;
+                return record[0].eventAttendId;
             }
 
             // no existing record: insert a new one
@@ -205,7 +205,9 @@ class postsModel {
             );
 
             await que.query(
-                `UPDATE events SET attendCount = attendCount + 1, updatedAt = NOW() WHERE eventId = ?`,
+                `UPDATE events 
+                SET attendCount = attendCount + 1, updatedAt = NOW() 
+                WHERE eventId = ?`,
                 [eventId]
             );
 
@@ -234,8 +236,8 @@ class postsModel {
             await que.query(
                 `UPDATE events 
                 SET reviewCount = reviewCount + 1, updatedAt = NOW() 
-                WHERE eventId = ?
-                `,[eventId]
+                WHERE eventId = ?`,
+                [eventId]
             );
 
             //get postId for the newly created post
@@ -371,19 +373,30 @@ class postsModel {
     }
 
     //C2. edit post content
-    async editPost(postId, content) {
+    async editPost(postId, requestingUserId, content) {
         let que;
         try {
             que = await pool.getConnection();
-            const [result] = await que.query(
-                `UPDATE posts 
-                SET content = ? 
+
+            const [post] = await que.query(
+                `SELECT userId 
+                FROM posts 
                 WHERE postId = ? 
+                AND isDeleted = 0`,
+                [postId]
+            );
+            
+            if (!post[0]) throw new Error('Post-not-found');
+            //make sure only the post owner can execute the code
+            if (post[0].userId !== requestingUserId) throw new Error('Not-authorized');
+
+            const [result] = await que.query(
+                `UPDATE posts
+                SET content = ?
+                WHERE postId = ?
                 AND isDeleted = 0
                 `,[content, postId]
             );
-
-            if (result.affectedRows === 0) throw new Error('Post-not-found');
 
         } catch (err) {
             console.error("Query Error: " + err);
@@ -396,21 +409,23 @@ class postsModel {
 
 //D. delete methods
     //D1. soft-delete a post (diary or comment) and all its nested comments
-    async deletePost(postId) {
+    async deletePost(postId, requestingUserId) {
         let que;
         try {
             que = await pool.getConnection();
 
             // verify post exists and get its related data
             const [post] = await que.query(
-                `SELECT postId, postParentId, eventId, type 
-                FROM posts 
-                WHERE postId = ? 
+                `SELECT postId, postParentId, eventId, type, userId
+                FROM posts
+                WHERE postId = ?
                 AND isDeleted = 0
                 `,[postId]
             );
 
             if (!post[0]) throw new Error('Post-not-found');
+            //make sure only the post owner can execute the code
+            if (post[0].userId !== requestingUserId) throw new Error('Not-authorized');
 
             // get all comments' postIds
             const [comments] = await que.query(`
