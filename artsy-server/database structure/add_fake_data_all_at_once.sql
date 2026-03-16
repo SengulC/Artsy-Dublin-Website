@@ -30,7 +30,7 @@ INSERT INTO userlocation (`locationId`, `locationName`) VALUES
 (23, 'Dublin 23'),
 (24, 'Dublin 24');
 
---events data 
+-- events data 
 INSERT INTO events (title, description, posterUrl, attendCount, reviewCount, saveCount) VALUES
 ('Dublin Jazz Night', 'A evening of live jazz performances at the heart of Dublin city', 'https://placeholder.com/jazz.jpg', 2, 1, 0),
 ('Contemporary Art Exhibition', 'Showcasing emerging Irish artists working in mixed media and sculpture', 'https://placeholder.com/art.jpg', 2, 0, 0),
@@ -38,7 +38,7 @@ INSERT INTO events (title, description, posterUrl, attendCount, reviewCount, sav
 ('Photography Walk Dublin', 'Guided photography tour through Dublins most iconic streets and hidden gems', 'https://placeholder.com/photo.jpg', 2, 1, 0),
 ('Traditional Music Session', 'An open traditional Irish music session welcoming all skill levels', 'https://placeholder.com/trad.jpg', 1, 1, 0);
 
---user data
+-- user data
 INSERT INTO users (userName, email, passwordHash, birthday, location, bio, gender) VALUES
 ('alice', 'alice@email.com', 'hashedpw123', '1998-03-15', 1, 'Art lover based in Dublin', 1),
 ('bob', 'bob@email.com', 'hashedpw456', '1992-07-22', 2, 'Music and theatre enthusiast', 2),
