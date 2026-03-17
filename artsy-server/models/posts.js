@@ -187,7 +187,8 @@ class postsModel {
                     WHERE eventAttendId = ?
                     `,[attendedAt, record[0].eventAttendId]
                 );
-
+                
+                //increment attendCount in TABLE events
                 await que.query(
                     `UPDATE events 
                     SET attendCount = attendCount + 1, updatedAt = NOW() 
@@ -203,7 +204,8 @@ class postsModel {
                 `INSERT INTO eventattended (userId, eventId, attendedAt) VALUES (?, ?, ?)`,
                 [userId, eventId, attendedAt]
             );
-
+            
+            //increment attendCount in TABLE events
             await que.query(
                 `UPDATE events 
                 SET attendCount = attendCount + 1, updatedAt = NOW() 
@@ -248,6 +250,8 @@ class postsModel {
                 const postImageEntries = images.map(url => [postId, url]);
                 await que.query(`INSERT INTO postImages (postId, imageUrl) VALUES ?`, [postImageEntries]);
             }
+            
+            //for directing user to the page of newly created post
             return postId;
 
         } catch (err) {
@@ -284,6 +288,8 @@ class postsModel {
                 const postImageEntries = images.map(url => [postId, url]);
                 await que.query(`INSERT INTO postImages (postId, imageUrl) VALUES ?`, [postImageEntries]);
             }
+            
+            //return the postId, but better to let the user stay on current post-page
             return postId;
 
         } catch (err) {
