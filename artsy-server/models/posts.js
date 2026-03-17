@@ -123,7 +123,7 @@ class postsModel {
     //Helper: get post images for post
     async _attachImages(que, posts) {
         const postIds = posts.map(p => p.postId);
-        if (postIds.length > 0) {
+        if (postIds.length) {
             const [postImages] = await que.query(
                 `SELECT imageUrl, postId 
                 FROM postImages 
@@ -313,7 +313,7 @@ class postsModel {
                 `,[likePostId, likeUserId]
             );
 
-            if (result.length > 0) {
+            if (result.length) {
                 await que.query(
                     `DELETE FROM postLikes 
                     WHERE postId = ? 
