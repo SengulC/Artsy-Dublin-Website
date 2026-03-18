@@ -4,6 +4,7 @@
 
 //import models
 const postsModel = require("../models/posts.js");
+const { processUploadedImages } = require("./imagesController");
 
 class postsController{
 
@@ -101,8 +102,8 @@ class postsController{
             const eventAttendedId = req.params.eventAttendedId;
             const userId = 1; // TODO: replace with req.session.userId
             const { content, eventId } = req.body;
-            const images = (req.files ?? []).map(f => `uploads/postImages/${f.filename}`);
-            const postId = await postsModel.createPost(userId, eventAttendedId, eventId, content, images);
+            const imageUrls = await processUploadedImages(req.files);
+            const postId = await postsModel.createPost(userId, eventAttendedId, eventId, content, imageUrls);
             res.status(201).json({ postId });
         } catch (err) {
             console.error(err);
@@ -116,8 +117,8 @@ class postsController{
             const postParentId = req.params.parentPostId;
             const userId = 1; // TODO: replace with req.session.userId
             const { content } = req.body;
-            const images = (req.files ?? []).map(f => `uploads/postImages/${f.filename}`);
-            const postId = await postsModel.createComment(userId, postParentId, content, images);
+            const imageUrls = await processUploadedImages(req.files);
+            const postId = await postsModel.createComment(userId, postParentId, content, imageUrls);
             res.status(201).json({ postId });
         } catch (err) {
             console.error(err);
