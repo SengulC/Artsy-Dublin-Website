@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create User</title>
+    <style></style>
+  </head>
+  <body>
+    <h1>Create Account</h1>
+
+    <div class="form-group">
+      <label for="userName">Username *</label>
+      <input type="text" id="userName" placeholder="e.g. Judy" />
+    </div>
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password *</label>
+      <input type="password" id="password" placeholder="••••••••" />
+    </div>
+    <div class="form-group">
+      <label for="birthday">Birthday</label>
+      <input type="date" id="birthday" />
+    </div>
+    <div class="form-group">
+      <label for="gender">Gender</label>
+      <select id="gender">
+        <option value="">Prefer not to say</option>
+        <option value="1">Male</option>
+        <option value="2">Female</option>
+        <option value="3">Non-binary</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="bio">Bio</label>
+      <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+    </div>
+
+    <button class="btn" onclick="createUser()">Create Account</button>
+    <p id="msg"></p>
+
+    <script>
+      const API_BASE = "http://localhost:3005";
+
+      async function createUser() {
+        const userName = document.getElementById("userName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const birthday = document.getElementById("birthday").value || undefined;
+        const gender = document.getElementById("gender").value || undefined;
+        const bio = document.getElementById("bio").value.trim() || undefined;
+
+        if (!userName || !email || !password) {
+          document.getElementById("msg").innerText =
+            "Username, email and password are required.";
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/users/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userName,
+              email,
+              password,
+              birthday,
+              gender,
+              bio,
+            }),
+          });
+          if (res.ok) {
+            const { userId } = await res.json();
+            document.getElementById("msg").innerText =
+              `Account created! Your user ID is ${userId}.`;
+            // Redirect to login page after 2 seconds
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 2000);
+          } else {
+            const text = await res.text();
+            document.getElementById("msg").innerText = `Failed: ${text}`;
+          }
+        } catch {
+          document.getElementById("msg").innerText =
+            "Failed to connect to server.";
+        }
+      }
+    </script>
+  </body>
+</html>
