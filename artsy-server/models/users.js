@@ -1,55 +1,54 @@
 // this is where we handle all raw data relating to users from db
 
-const path = require('path');
-const dotenv = require('dotenv').config({path: path.join(__dirname, '..', '.env')});
-const axios = require('axios');
-
-// Import mysql and configure file
+const mysql2 = require("mysql2");
 const dbconfig = require("../utils/dbconfig");
-const mysql = require("mysql2/promise");
+const pool = mysql2.createPool(dbconfig).promise();
 
-// userModel defines all the functions we need to use related to users
-class usersModel{
-    
-    //get all the users
-    async getUsersPool(){
-        // Connect to the database
-        const connection = await mysql.createConnection(dbconfig);
-
-        let que;//mysql query
-        try{
-            que = "select * from users;";
-            const [results, fields] = await connection.query(que);
-            return results;
-        }
-        catch(err){
-            console.error("Query Error: " + err);
-        }finally{
-            connection.end();}
+class usersModel {
+  async getUserByEmail(email) {
+    try {
+      const [results] = await pool.query(
+        `SELECT * FROM users WHERE email = ?`,
+        [email],
+      );
+      return results[0] || null;
+    } catch (err) {
+      console.error("Login Query Error: ", err);
+      throw err;
     }
+  }
 
-    //get user profile info by their username
-    async getUsersByName(name){
-        // Connect to the database
-        const connection = await mysql.createConnection(dbconfig);
-        try{
-            const que = 
-            `select users.*, userLocation.locationName, userGender.genderName
-            from users 
-            join userLocation on users.location = userLocation.locationId
-            join userGender on users.gender = userGender.genderId
-            where username =?`;
-            const [results, fields] = await connection.query(que, [name]);
-            return results[0]||null;
-        }
-        catch(err){
-            console.error("Query Error: " + err);
-        }
-        finally{connection.end();
-        }
-        
+  async createUser(
+    userName,
+    avatarUrl,
+    email,
+    passwordHash,
+    birthday,
+    location,
+    bio,
+    gender,
+  ) {
+    try {
+      const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
+      const QUERY = `INSERT INTO users (userName, avatarUrl, email, passwordHash, birthday, location, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      const [result] = await pool.query(QUERY, [
+        userName,
+        avatarUrl || null,
+        email,
+        passwordHash,
+        birthday || null,
+        location || null,
+        bio || null,
+        gender || null,
+        createdAt,
+      ]);
+      return result.insertId;
+    } catch (err) {
+      console.error("Register Insert Error: ", err);
+      throw err;
     }
+  }
 }
-
 
 module.exports = new usersModel();
