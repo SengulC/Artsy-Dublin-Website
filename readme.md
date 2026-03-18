@@ -4,3 +4,9 @@
     - "database structure/add_fake_data_all_at_once.sql"
 3. npm run dev
 4. use liveserver to preview "views/eventDetail.html"
+
+
+
+do:
+run this to install sharp:
+npm install express-fileupload sharp  
