@@ -24,35 +24,56 @@ const ticketmaster_api = axios.create({
     }
 });
 
-async function fetchAndPopulate() {
+async function fetchAndPopulate(eventType) {
     // fetch events from api
+    // TODO: error detection for incorrect eventType
     const theatreEvents = await ticketmaster_api.get('events', {
         params: {
-        countryCode: 'IE',
-        genreId: 'KnvZfZ7v7l1', // theatre
-        keyword: 'comedy', // comedy, musical etc.
-        startDateTime: '2026-05-10T19:00:00Z', // get user's current date and set end to a month later
-        sort: 'date,asc'
+            countryCode: 'IE',
+            segmentId: eventType, // e.g. KZFzniwnSyZfZ7v7na - arts & theater
+            startDateTime: '2026-05-10T19:00:00Z', // get user's current date and set end to a month later
+            sort: 'date,asc'
         }
     });
 
     // clean up data by producing an obj with all the data we need for our db
-    let eventsData = theatreEvents.data._embedded.events.map((e) =>  ({
-        title: e.name,
-        url: e.url,
-        // some sort of nested loop search for scraping segment, (sub)genres
-        desc: `${e.classifications[0].segment.name}, ${e.classifications[0].subGenre.name}`, 
-        posterUrl: e.images[0].url,
-        // event: e,
-    }));
+    let eventsData = theatreEvents.data._embedded.events.map((e) =>  
+        ({
+            title: e.name,
+            url: e.url,
+            desc: `${e.classifications[0].segment.name}, ${e.classifications[0].subGenre.name}`, 
+            posterUrl: e.images[0].url,
+            dateTime: e.dates.start.dateTime,
+            venue: e._embedded.venues[0].name,
+            genres: [e.classifications[0].genre.id, e.classifications[0].subGenre.id]
+        })
+    );
 
     // populate into db, skipping repeats
     for (let event of eventsData) {
+        // add event into events table
+        await pool.query(
+            `INSERT IGNORE INTO ${dotenv.parsed.EVENTS_TABLE} 
+            (title, url, description, 
+            posterURL, startDateTime, 
+            venue, eventTypeId) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+            [event.title, event.url, event.desc, 
+            event.posterUrl, event.dateTime,
+            event.venue,
+            eventType]
+        );
+        
+        // loop thru current event's genres and add each genre to eventTags junction table for future look-up
+        for (let eventGenre of event.genres) {
             await pool.query(
-                `INSERT IGNORE INTO ${dotenv.parsed.EVENTS_TABLE} (title, url, description, posterURL) VALUES (?, ?, ?, ?)`,
-                [event.title, event.url, event.posterUrl, event.desc]
-            );
+            `INSERT IGNORE INTO eventtags
+            (eventTitle, genreId) 
+            VALUES (?, ?)`, 
+            [event.title, eventGenre]
+        );
         }
+    }
     return eventsData;
 }
 

@@ -13,9 +13,10 @@ async function get (req, res) {
     res.json(results);
 }
 
-async function update (req, res) {
+async function updateByType (req, res) {
+    const eventType = req.params.type;
     // update events, do an API call to populate the db!
-    await model.fetchAndPopulate();
+    const eventsByType = await model.fetchAndPopulate(eventType);
     // then call all events from the db
     const results = await model.get();
     res.json(results);
@@ -36,6 +37,6 @@ async function getEventById (req, res) {
 
 module.exports = {
     get,
-    update,
+    updateByType,
     getEventById
 };
