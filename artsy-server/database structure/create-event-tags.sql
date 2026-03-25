@@ -1,5 +1,6 @@
 CREATE TABLE `eventtags` (
-  `eventTagsId` int NOT NULL AUTO_INCREMENT,
+  `eventTagsId` varchar(255) NOT NULL,
+  -- will be combo of event-genre st repeat of the same event-genre combo isnt stored but only new genres attributed to the same event get added per call.
   `eventId` INT NOT NULL,
   `genreId` varchar(255) NOT NULL,
   PRIMARY KEY (`eventTagsId`),

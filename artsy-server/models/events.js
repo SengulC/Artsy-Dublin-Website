@@ -43,8 +43,8 @@ async function fetchAndPopulate(eventType) {
             url: e.url,
             desc: `${e.classifications[0].segment.name}, ${e.classifications[0].subGenre.name}`, 
             posterUrl: e.images[0].url,
-            // dateTime: e.dates.start.dateTime,
-            dateTime: new Date(e.dates.start.dateTime).toISOString().slice(0, 19).replace('T', ' '),
+            dateTime: e.dates.start.dateTime,
+            // dateTime: new Date(e.dates.start.dateTime).toISOString().slice(0, 19).replace('T', ' '),
             venue: e._embedded.venues[0].name,
             genres: [e.classifications[0].genre.id, e.classifications[0].subGenre.id]
         })
@@ -53,12 +53,11 @@ async function fetchAndPopulate(eventType) {
     // populate into db, skipping repeats appropriately
     for (let event of eventsData) {
         const eventInDb = await getEventByTitle(event.title);
+        console.log(event.dateTime)
         if (eventInDb) {
             // if this event already exists in table, add it to repeats table
-            // console.log(eventInDb.eventId, eventInDb.title + ' already exists');
-            console.log(event.dateTime)
             await pool.query(
-                `INSERT INTO eventsrepeats 
+                `INSERT IGNORE INTO eventsrepeats 
                 (eventId, date) 
                 VALUES (?, ?)`, 
                 [eventInDb.eventId, event.dateTime]
@@ -84,9 +83,9 @@ async function fetchAndPopulate(eventType) {
             for (let eventGenre of event.genres) {
                 await pool.query(
                 `INSERT IGNORE INTO eventtags
-                (eventId, genreId) 
-                VALUES (?, ?)`, 
-                [eventId, eventGenre]
+                (eventTagsId, eventId, genreId) 
+                VALUES (?, ?, ?)`, 
+                [eventId+"-"+eventGenre, eventId, eventGenre]
             );
             }
         }
@@ -103,6 +102,23 @@ async function getEventById(eventId) {
     return results[0] || null;
 }
 
+// get event repeats
+// get event details by its id
+async function getEventRepeatsById(eventId) {
+    const [results] = await pool.query(
+        `SELECT * FROM events WHERE eventId = ?`,
+        [eventId]
+    );
+
+    // get any repeats of the event
+    results.push(await pool.query(
+        `SELECT * FROM eventsrepeats WHERE eventId = ?`,
+        [eventId]
+    ));
+
+    return results || null;
+}
+
 async function getEventByTitle(title) {
     const [results] = await pool.query(
         `SELECT * FROM events WHERE title = ?`,
@@ -114,5 +130,6 @@ async function getEventByTitle(title) {
 module.exports = {
     get,
     fetchAndPopulate,
-    getEventById
+    getEventById,
+    getEventRepeatsById
 };

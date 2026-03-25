@@ -34,9 +34,16 @@ async function getEventById (req, res) {
     res.json({ ...eventDetail, attendance }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
 }
 
+async function getEventRepeatsById (req, res) {
+    const eventDetail = await model.getEventRepeatsById(req.params.eventid);
+    if(eventDetail[1][0].length<=0) return res.status(404).send('Event does not repeat');
+    
+    res.json(eventDetail);
+}
 
 module.exports = {
     get,
     updateByType,
-    getEventById
+    getEventById,
+    getEventRepeatsById
 };
