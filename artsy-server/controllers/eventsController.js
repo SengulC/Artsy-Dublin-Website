@@ -16,9 +16,13 @@ async function get (req, res) {
 async function updateByType (req, res) {
     const eventType = req.params.type;
     // update events, do an API call to populate the db!
-    const eventsByType = await model.fetchAndPopulate(eventType);
+    let results;
+    if (eventType == 'tmdbFilm')
+        results = await model.fetchFilmsAndPopulate();
+    else
+        results = await model.fetchLiveEventsAndPopulate(eventType);
     // then call all events from the db
-    const results = await model.get();
+    // const results = await model.get();
     res.json(results);
 }
 

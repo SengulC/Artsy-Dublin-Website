@@ -16,7 +16,7 @@ async function get() {
     return results;
 }
 
-// Make API connection
+// Make API connections
 const ticketmaster_api = axios.create({
     baseURL: 'https://app.ticketmaster.com/discovery/v2/',
     params: {
@@ -24,7 +24,31 @@ const ticketmaster_api = axios.create({
     }
 });
 
-async function fetchAndPopulate(eventType) {
+const tmdb_api = axios.create({
+  baseURL: 'https://api.themoviedb.org/3',
+  headers: {
+    'Authorization': `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+async function fetchFilmsAndPopulate() {
+    const response = await tmdb_api.get('/discover/movie', {
+    params: {
+        region: 'IE',
+        'release_date.gte': '2026-03-15',
+        'release_date.lte': '2026-03-25',
+        'with_release_type': '2|3' // theater code
+    }
+    });
+
+    response.data.results.map((film) => console.log(film.title + " was released this month. \n See all showtimes near you here: https://entertainment.ie/cinema/cinema-listings/dublin/all-venues/"+film.title.replace("'", "").replace(/\s/g, "-")));
+    // potentially add web scraping of ent.ie/cinema-listings
+    
+    return response.data.results;
+}
+
+async function fetchLiveEventsAndPopulate(eventType) {
     // fetch events from api
     // TODO: error detection for incorrect eventType
     const theatreEvents = await ticketmaster_api.get('events', {
@@ -129,7 +153,8 @@ async function getEventByTitle(title) {
 
 module.exports = {
     get,
-    fetchAndPopulate,
+    fetchLiveEventsAndPopulate,
+    fetchFilmsAndPopulate,
     getEventById,
     getEventRepeatsById
 };
