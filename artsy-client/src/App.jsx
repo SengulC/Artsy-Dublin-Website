@@ -1,11 +1,17 @@
+
+
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useEffect, useState } from "react";
+
+import Login from './pages/Login'
+
 import bgl from './assets/images/bgl.png'
 import test from './assets/images/test.jpg'
 import './index.css'
 import './App.css'
 
-import { useEffect, useState } from "react";
+function Homepage() {
 
-function App() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
@@ -113,4 +119,15 @@ function App() {
   );
 }
 
-export default App;
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+export default App
