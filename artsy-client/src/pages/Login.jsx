@@ -1,8 +1,8 @@
 import { useState } from "react";
 import './Login.css';
 
-const flowerImage =
-  "login.png";
+import loginImg from "../assets/images/login.png";
+import logoImg from "../assets/images/logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -20,31 +20,8 @@ export default function Login() {
         {/* Left: Form */}
         <div className="formSection">
           {/* Logo */}
-          <div className="logoWrap">
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-              <text
-                x="50%"
-                y="55%"
-                dominantBaseline="middle"
-                textAnchor="middle"
-                fontFamily="Georgia, serif"
-                fontSize="22"
-                fill="#5c3d1e"
-                fontWeight="500"
-              >
-                AD
-              </text>
-              <rect
-                x="2"
-                y="2"
-                width="48"
-                height="48"
-                rx="4"
-                stroke="#5c3d1e"
-                strokeWidth="1.5"
-                fill="none"
-              />
-            </svg>
+          <div className="logoImg">
+            <img src={logoImg}></img>
           </div>
 
           <h1 className="title">Welcome to Artsy Dublin</h1>
@@ -123,7 +100,7 @@ export default function Login() {
 
         {/* Right: Artwork */}
         <div className="imageSection">
-          <img src={flowerImage} alt="Event picture" className="artwork" />
+          <img src={loginImg} alt="Event picture" className="artwork" />
         </div>
       </div>
     </div>

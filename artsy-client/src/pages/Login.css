@@ -43,7 +43,7 @@
 .imageSection {
     width: 420px;
     flex-shrink: 0;
-    padding: 32px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -53,13 +53,17 @@
 .artwork {
     width: 100%;
     height: 100%;
-    max-height: 640px;
+    max-height: 1200px;
     object-fit: cover;
     border-radius: 12px;
 }
 
-.logoWrap {
+.logoImg {
     margin-bottom: 16px;
+}
+
+.logoImg img{
+    max-width: 128px;
 }
 
 .title {
@@ -187,6 +191,7 @@
     width: 100%;
     max-width: 320px;
     padding: 11px;
+    margin: 4px;
     background: #f0f4fb;
     color: #333;
     border: none;
