@@ -1,16 +1,15 @@
-
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect, useState } from "react";
 
 import Login from './pages/Login'
 
+import logo from './assets/images/logo.png'
 import bgl from './assets/images/bgl.png'
 import test from './assets/images/test.jpg'
 import './index.css'
 import './App.css'
 
-function Homepage() {
+function HomePage() {
 
   const [events, setEvents] = useState([]);
 
