@@ -1,8 +1,6 @@
 // this is the controller for user related stuff
 
 const usersModel = require("../models/users");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 // const db = require("../db");
 
 class userController {
@@ -24,20 +22,19 @@ class userController {
   //create a new user
   async createUser(req, res) {
     try {
-      const { userName, email, password, birthday, location, bio, gender } =
+      const { userName, email, firebaseUid, birthday, location, bio, gender } =
         req.body;
-      if (!userName || !email || !password) {
+      if (!userName || !email || !firebaseUid) {
         return res
           .status(400)
-          .send("userName, email and password are required");
+          .send("userName, email and firebaseUid are required");
       }
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+
       const userId = await usersModel.createUser(
         userName,
         null,
         email,
-        hashedPassword,
+        firebaseUid,
         birthday,
         location,
         bio,
@@ -54,45 +51,6 @@ class userController {
       });
     } catch (error) {
       console.error("Register Error:", error);
-      res.status(500).send("Internal Server Error");
-    }
-  }
-
-  //user login
-  async loginUser(req, res) {
-    try {
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).send("Email and password are required");
-      }
-
-      const user = await usersModel.getUserByEmail(email);
-      if (!user) {
-        return res.status(401).send("Invalid email or password");
-      }
-
-      const isMatch = await bcrypt.compare(password, user.passwordHash);
-
-      if (!isMatch) {
-        return res.status(401).send("Invalid email or password");
-      }
-      const token = jwt.sign(
-        {
-          userId: user.userId,
-          userName: user.userName,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" },
-      );
-
-      res.json({
-        message: "Login successful!",
-        token: token,
-        userName: user.userName,
-      });
-    } catch (error) {
-      console.error("Login Error:", error);
       res.status(500).send("Internal Server Error");
     }
   }

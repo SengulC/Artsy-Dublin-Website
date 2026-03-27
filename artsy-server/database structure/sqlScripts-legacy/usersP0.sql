@@ -30,3 +30,9 @@ CREATE TABLE `users` (
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`location`) REFERENCES `userlocation` (`locationId`),
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`gender`) REFERENCES `usergender` (`genderId`)
 );
+
+-- use firebase to replace the passwordHash column
+ALTER TABLE users DROP COLUMN passwordHash;
+
+
+ALTER TABLE users ADD COLUMN firebaseUid VARCHAR(128);

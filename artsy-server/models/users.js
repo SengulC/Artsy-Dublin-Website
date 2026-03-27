@@ -5,24 +5,11 @@ const dbconfig = require("../utils/dbconfig");
 const pool = mysql2.createPool(dbconfig).promise();
 
 class usersModel {
-  async getUserByEmail(email) {
-    try {
-      const [results] = await pool.query(
-        `SELECT * FROM users WHERE email = ?`,
-        [email],
-      );
-      return results[0] || null;
-    } catch (err) {
-      console.error("Login Query Error: ", err);
-      throw err;
-    }
-  }
-
   async createUser(
     userName,
     avatarUrl,
     email,
-    passwordHash,
+    firebaseUid,
     birthday,
     location,
     bio,
@@ -30,13 +17,14 @@ class usersModel {
   ) {
     try {
       const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
-      const QUERY = `INSERT INTO users (userName, avatarUrl, email, passwordHash, birthday, location, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, birthday, location, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      //passwordHash → firebaseUid ↑
 
       const [result] = await pool.query(QUERY, [
         userName,
         avatarUrl || null,
         email,
-        passwordHash,
+        firebaseUid,
         birthday || null,
         location || null,
         bio || null,
