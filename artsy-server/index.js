@@ -1,6 +1,7 @@
 require("dotenv").config();
 const session = require("express-session");
 const express = require("express");
+<<<<<<< Updated upstream
 const cors = require("cors");
 const path = require("path");
 const jwt = require("jsonwebtoken");
@@ -9,6 +10,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public"))); //static path
+=======
+const app = express();
+const cors = require("cors");
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  }),
+);
+app.use(express.json());
+>>>>>>> Stashed changes
 
 const eventsRoute = require("./routes/events");
 app.use("/events", eventsRoute);
