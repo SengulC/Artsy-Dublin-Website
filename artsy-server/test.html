@@ -38,22 +38,22 @@
     </style>
   </head>
   <body>
-    <h2>注册</h2>
+    <h2>Register</h2>
     <input id="reg-username" placeholder="Username" />
     <input id="reg-email" placeholder="Email" />
     <input id="reg-password" placeholder="Password" type="password" />
-    <button onclick="register()">注册</button>
+    <button onclick="register()">register</button>
 
-    <h2>登录</h2>
+    <h2>Login</h2>
     <input id="login-email" placeholder="Email" />
     <input id="login-password" placeholder="Password" type="password" />
-    <button onclick="login()">登录</button>
+    <button onclick="login()">login</button>
 
-    <h2>验证登录状态</h2>
+    <h2>Check Auth Status</h2>
     <button onclick="checkAuth()">Check Auth</button>
 
-    <h2>结果</h2>
-    <pre id="result">等待操作...</pre>
+    <h2>Result</h2>
+    <pre id="result">Waiting for operation...</pre>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
@@ -115,10 +115,10 @@
           const token = await userCredential.user.getIdToken();
           localStorage.setItem("token", token);
           document.getElementById("result").innerText =
-            "登录成功！token 已保存";
+            "Login successful! Token saved.";
         } catch (err) {
           document.getElementById("result").innerText =
-            "登录失败：" + err.message;
+            "Login failed: " + err.message;
         }
       };
 
@@ -127,7 +127,7 @@
           const token = localStorage.getItem("token");
           if (!token) {
             document.getElementById("result").innerText =
-              "没有找到 token，请先登录";
+              "Token not found, please login first";
             return;
           }
           const res = await fetch("http://localhost:3005/api/check-auth", {
@@ -141,7 +141,7 @@
           );
         } catch (err) {
           document.getElementById("result").innerText =
-            "验证失败：" + err.message;
+            "Check auth failed: " + err.message;
         }
       };
     </script>
