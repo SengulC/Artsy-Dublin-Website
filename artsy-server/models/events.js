@@ -40,10 +40,6 @@ async function fetchFilmsAndPopulate() {
     }
     });
 
-    // films.data.results.map((film) => 
-    //     console.log(film.title + ` was released this month. \n See all showtimes near you here:` +  
-    //         `https://www.google.com/search?q=${film.title.replace("'", "").replace(/\s/g, "+")}+showtimes+Dublin`));
-    
     // potentially add web scraping of ent.ie/cinema-listings
 
     // clean up the API response by getting data we need
@@ -157,9 +153,31 @@ async function fetchLiveEventsAndPopulate(eventType) {
 // get event details by its id
 async function getEventById(eventId) {
     const [results] = await pool.query(
-        `SELECT * FROM events WHERE eventId = ?`,
-        [eventId]
+        `
+        SELECT  
+            e.eventId, 
+            e.title, 
+            e.url, 
+            e.description, 
+            e.venue, 
+            e.startDateTime, 
+            e.posterUrl, 
+            z.eventTypeName, 
+            JSON_ARRAYAGG(g.name) AS genres 
+        FROM events e 
+        LEFT JOIN eventtypes z
+            ON 	e.eventTypeId = z.eventTypeId
+        LEFT JOIN eventtags t 
+            ON e.eventId = t.eventId 
+        LEFT JOIN genres g 
+        ON t.genreId = g.genreId 
+        WHERE e.eventId = ? 
+        GROUP BY 
+            e.eventId, e.title, e.url, e.description, 
+            e.venue, e.startDateTime, e.posterUrl, z.eventTypeName 
+        `, [eventId]
     );
+
     return results[0] || null;
 }
 
