@@ -1,6 +1,5 @@
 // this is where we handle all raw data relating to events, e.g. from api and/or db
 
-const path = require('path');
 const { default: slugify } = require("slugify");
 const axios = require('axios');
 
@@ -82,13 +81,27 @@ async function fetchFilmsAndPopulate() {
     return filmsData;
 }
 
-async function fetchLiveEventsAndPopulate(eventType) {
+async function fetchLiveEventsAndPopulate(typeName) {
     // fetch events from api
     // TODO: error detection for incorrect eventType
+    // TODO-NOW: CONVERT TYPENAME TO ID
+
+    // convertinf from type name to id for easier frontend access
+    let eventTypeId = await pool.query(
+        `SELECT eventTypeId FROM artsy_dub.eventtypes
+	    WHERE eventTypeName = ?`, typeName);
+    
+    if (eventTypeId[0][0])
+        eventTypeId = eventTypeId[0][0].eventTypeId;
+    else {
+        console.error("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
+        return;
+    }
+
     const theatreEvents = await ticketmaster_api.get('events', {
         params: {
             countryCode: 'IE',
-            segmentId: eventType, // e.g. KZFzniwnSyZfZ7v7na - arts & theater
+            segmentId: eventTypeId, 
             startDateTime: '2026-05-10T19:00:00Z', // get user's current date and set end to a month later
             sort: 'date,asc'
         }
@@ -129,8 +142,7 @@ async function fetchLiveEventsAndPopulate(eventType) {
                 VALUES (?, ?, ?, ?, ?, ?, ?)`, 
                 [event.title, event.url, event.desc, 
                 event.posterUrl, event.dateTime,
-                event.venue,
-                eventType]
+                event.venue, eventTypeId]
             );
 
             // get PK generated above to store in event tags table
@@ -181,8 +193,7 @@ async function getEventById(eventId) {
     return results[0] || null;
 }
 
-// get event repeats
-// get event details by its id
+// TODO: MERGE INTO ABOVE get event repeats
 async function getEventRepeatsById(eventId) {
     const [results] = await pool.query(
         `SELECT * FROM events WHERE eventId = ?`,
@@ -198,6 +209,21 @@ async function getEventRepeatsById(eventId) {
     return results || null;
 }
 
+// get all events in the db by type
+async function getEventsByType(typeName) {
+    let id = await pool.query(
+        `SELECT eventTypeId FROM artsy_dub.eventtypes
+	    WHERE eventTypeName = ?`, typeName);
+    
+    id = id[0][0].eventTypeId;
+
+    const [results] = await pool.query(
+        `SELECT * FROM events
+        WHERE eventTypeId = ?`, id);
+    return results;
+}
+
+// helper function to check if an event already exists in the db via its title
 async function getEventByTitle(title) {
     const [results] = await pool.query(
         `SELECT * FROM events WHERE title = ?`,
@@ -211,5 +237,6 @@ module.exports = {
     fetchLiveEventsAndPopulate,
     fetchFilmsAndPopulate,
     getEventById,
-    getEventRepeatsById
+    getEventRepeatsById,
+    getEventsByType
 };

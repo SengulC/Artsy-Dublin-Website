@@ -14,10 +14,10 @@ async function get (req, res) {
 }
 
 async function updateByType (req, res) {
-    const eventType = req.params.type;
+    const eventType = req.params.typename;
     // update events, do an API call to populate the db!
     let results;
-    if (eventType == 'tmdbFilm')
+    if (eventType == 'Film-Showing')
         results = await model.fetchFilmsAndPopulate();
     else
         results = await model.fetchLiveEventsAndPopulate(eventType);
@@ -38,6 +38,8 @@ async function getEventById (req, res) {
     res.json({ ...eventDetail, attendance }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
 }
 
+// TO DO: MERGE THE BELOW INTO THE ABOVE
+// S.T. IF AN EVENT HAS REPEATS, ITS REPEATED DATES ARE JOINED TO THE EVENTDATA PASSED ABOVE
 async function getEventRepeatsById (req, res) {
     const eventDetail = await model.getEventRepeatsById(req.params.eventid);
     if(eventDetail[1][0].length<=0) return res.status(404).send('Event does not repeat');
@@ -45,9 +47,16 @@ async function getEventRepeatsById (req, res) {
     res.json(eventDetail);
 }
 
+async function getEventsByType(req, res) {
+    const eventType = req.params.typename;
+    let results = await model.getEventsByType(eventType);
+    res.json(results);
+}
+
 module.exports = {
     get,
     updateByType,
     getEventById,
-    getEventRepeatsById
+    getEventRepeatsById,
+    getEventsByType
 };
