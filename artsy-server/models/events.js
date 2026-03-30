@@ -84,9 +84,8 @@ async function fetchFilmsAndPopulate() {
 async function fetchLiveEventsAndPopulate(typeName) {
     // fetch events from api
     // TODO: error detection for incorrect eventType
-    // TODO-NOW: CONVERT TYPENAME TO ID
-
-    // convertinf from type name to id for easier frontend access
+    
+    // converting from type name to id for easier frontend access
     let eventTypeId = await pool.query(
         `SELECT eventTypeId FROM artsy_dub.eventtypes
 	    WHERE eventTypeName = ?`, typeName);

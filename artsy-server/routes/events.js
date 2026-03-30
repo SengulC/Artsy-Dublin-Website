@@ -14,4 +14,5 @@ router.get("/update/:typename", controller.updateByType); // typenames: "Arts-&-
 
 // GET SINGLE EVENT DATA
 router.get("/event/:eventid", controller.getEventById);
+
 module.exports = router;
