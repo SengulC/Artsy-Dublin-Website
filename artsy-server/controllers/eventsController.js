@@ -13,6 +13,14 @@ async function get (req, res) {
     res.json(results);
 }
 
+async function getEventsByType(req, res) {
+    const eventType = req.params.typename;
+    let results = await model.getEventsByType(eventType);
+    if (!results)
+        return res.status(404).send("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
+    res.json(results);
+}
+
 async function updateByType (req, res) {
     const eventType = req.params.typename;
     // update events, do an API call to populate the db!
@@ -21,6 +29,8 @@ async function updateByType (req, res) {
         results = await model.fetchFilmsAndPopulate();
     else
         results = await model.fetchLiveEventsAndPopulate(eventType);
+    if (!results)
+        return res.status(404).send("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
     // then call all events from the db
     // const results = await model.get();
     res.json(results);
@@ -45,12 +55,6 @@ async function getEventRepeatsById (req, res) {
     if(eventDetail[1][0].length<=0) return res.status(404).send('Event does not repeat');
     
     res.json(eventDetail);
-}
-
-async function getEventsByType(req, res) {
-    const eventType = req.params.typename;
-    let results = await model.getEventsByType(eventType);
-    res.json(results);
 }
 
 module.exports = {

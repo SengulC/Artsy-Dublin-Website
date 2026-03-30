@@ -94,7 +94,6 @@ async function fetchLiveEventsAndPopulate(typeName) {
     if (eventTypeId[0][0])
         eventTypeId = eventTypeId[0][0].eventTypeId;
     else {
-        console.error("That event type does not exist. Try: 'Arts-&-Theater', 'Music', 'Film-Showing'");
         return;
     }
 
@@ -215,6 +214,7 @@ async function getEventsByType(typeName) {
         `SELECT eventTypeId FROM artsy_dub.eventtypes
 	    WHERE eventTypeName = ?`, typeName);
     
+    if(id[0].length==0) return;
     id = id[0][0].eventTypeId;
 
     const [results] = await pool.query(
