@@ -47,31 +47,24 @@ async function getEventsByGenre(req, res) {
 }
 
 async function getEventById (req, res) {
-    const eventDetail = await model.getEventById(req.params.eventid);
+    const id = req.params.eventid;
+    const eventDetail = await model.getEventById(id);
     if(!eventDetail) return res.status(404).send('Event not found');
+
+    const eventRepeats = await model.getEventRepeatsById(id);
 
     const userId = 1; // TODO: const userId = req.session?.userId
     const attendance = userId
-        ? await postsModel.getAttendanceStatus(userId, req.params.eventid)
+        ? await postsModel.getAttendanceStatus(userId, id)
         : null;
 
-    res.json({ ...eventDetail, attendance }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
-}
-
-// TO DO: MERGE THE BELOW INTO THE ABOVE
-// S.T. IF AN EVENT HAS REPEATS, ITS REPEATED DATES ARE JOINED TO THE EVENTDATA PASSED ABOVE
-async function getEventRepeatsById (req, res) {
-    const eventDetail = await model.getEventRepeatsById(req.params.eventid);
-    if(eventDetail[1][0].length<=0) return res.status(404).send('Event does not repeat');
-    
-    res.json(eventDetail);
+    res.json({ ...eventDetail, eventRepeats, attendance }); // attendance: null if not logged in / not attended, otherwise { eventAttendId, rating }
 }
 
 module.exports = {
     get,
     updateByType,
     getEventById,
-    getEventRepeatsById,
     getEventsByType,
     getEventsByGenre
 };

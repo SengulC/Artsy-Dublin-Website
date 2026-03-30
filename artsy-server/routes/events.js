@@ -14,7 +14,4 @@ router.get("/update/:typename", controller.updateByType); // typenames: "Arts-&-
 
 // GET SINGLE EVENT DATA
 router.get("/event/:eventid", controller.getEventById);
-// TODO: MERGE BELOW INTO ABOVE
-router.get("/event/all/:eventid", controller.getEventRepeatsById)
-
 module.exports = router;

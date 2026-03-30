@@ -181,7 +181,7 @@ async function getEventById(eventId) {
         LEFT JOIN eventtags t 
             ON e.eventId = t.eventId 
         LEFT JOIN genres g 
-        ON t.genreId = g.genreId 
+            ON t.genreId = g.genreId 
         WHERE e.eventId = ? 
         GROUP BY 
             e.eventId, e.title, e.url, e.description, 
@@ -194,18 +194,18 @@ async function getEventById(eventId) {
 
 // TODO: MERGE INTO ABOVE get event repeats
 async function getEventRepeatsById(eventId) {
-    const [results] = await pool.query(
-        `SELECT * FROM events WHERE eventId = ?`,
-        [eventId]
-    );
-
     // get any repeats of the event
-    results.push(await pool.query(
-        `SELECT * FROM eventsrepeats WHERE eventId = ?`,
-        [eventId]
+    const [results] = (await pool.query(
+        `SELECT r.date, e.venue
+        FROM events e
+        CROSS JOIN eventsrepeats r
+            ON e.eventId = r.eventId
+        WHERE e.eventId = ? 
+        AND e.startDateTime != r.date`, [eventId]
+        // last line is for repeat results from API
     ));
 
-    return results || null;
+    return results;
 }
 
 // get all events in the db by type
