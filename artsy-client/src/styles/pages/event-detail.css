@@ -1,0 +1,9 @@
+.event-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.event-detail_image-wrap img {
+    width: 100%;
+}

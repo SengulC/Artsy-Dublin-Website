@@ -9,6 +9,7 @@ import Header from "./components/layout/Header"
 import Footer from "./components/layout/Footer"
 import mockEvents from "./mock/events";
 import EventCard from "./components/events/EventCard";
+import EventDetailPage from './pages/EventDetailPage'
 
 import './index.css'
 import './styles/component.css'
@@ -27,6 +28,10 @@ function HomePage() {
   //     })
   //     .catch(err => console.error(err));
   // }, []);
+  function getCardVariant(index) {
+    const variants = ["hero", "small", "small", "wide", "tall", "small"];
+    return variants[index % variants.length];
+  }
 
   return (
     <div>
@@ -38,8 +43,12 @@ function HomePage() {
         </div>
         {/* <h1>#Exhibtion</h1> */}
         <div className="events_grid">
-          {mockEvents.map((event) => (
-            <EventCard key={event.eventId} event={event} />
+          {mockEvents.map((event, index) => (
+            <EventCard
+              key={event.eventId}
+              event={event}
+            // variant={getCardVariant(index)}
+            />
           ))}
         </div>
         <CalendarSection events={mockEvents} />
@@ -114,6 +123,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
       </Routes>
     </BrowserRouter>
   )
