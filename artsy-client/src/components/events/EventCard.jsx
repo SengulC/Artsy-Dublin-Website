@@ -1,4 +1,6 @@
-function EventCard({ event }) {
+import { Link } from "react-router-dom";
+function EventCard({ event, variant = "small" }) {
+
 
     const formattedDate = event.startDateTime
         ? new Date(event.startDateTime)
@@ -14,13 +16,8 @@ function EventCard({ event }) {
         : "Date to be announced";
 
     return (
-        <div className="event-card">
-            <a
-                href={event.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="event-card__link"
-            >
+        <div className={`event-card event-card--${variant}`}>
+            <Link to={`/events/${event.eventId}`} className="event-card__link">
                 <div className="event-card__image-wrap">
                     <img
                         src={event.posterUrl}
@@ -43,7 +40,7 @@ function EventCard({ event }) {
                         <p className="event-card__venue">{event.venue || "Venue TBA"}</p>
                     </div>
                 </div>
-            </a>
+            </Link>
         </div>
     );
 }

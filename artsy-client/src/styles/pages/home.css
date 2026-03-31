@@ -1,3 +1,30 @@
+.events_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* grid-auto-rows: 160px; */
+    gap: 24px;
+}
+
+/* .event-card--hero {
+    grid-column: span 3;
+    grid-row: span 3;
+}
+
+.event-card--small {
+    grid-column: span 3;
+    grid-row: span 4;
+}
+
+.event-card--wide {
+    grid-column: span 3;
+    grid-row: span 3;
+}
+
+.event-card--tall {
+    grid-column: span 3;
+    grid-row: span 3;
+} */
+
 .calendar {
     margin-top: 80px;
     padding: 0 40px;
