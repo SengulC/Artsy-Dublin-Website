@@ -1,7 +1,7 @@
-ALTER TABLE `genres` (
+CREATE TABLE `genres` (
   `genreId` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
   `eventTypeId` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
   PRIMARY KEY (`genreId`),
   KEY `eventTypeId` (`eventTypeId`),
   CONSTRAINT `genre_ibfk_1` FOREIGN KEY (`eventTypeId`) REFERENCES `eventtypes` (`eventTypeId`)

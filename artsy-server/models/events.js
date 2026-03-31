@@ -87,7 +87,7 @@ async function fetchLiveEventsAndPopulate(typeName) {
     
     // converting from type name to id for easier frontend access
     let eventTypeId = await pool.query(
-        `SELECT eventTypeId FROM artsy_dub.eventtypes
+        `SELECT eventTypeId FROM ${process.env.DB_NAME}.eventtypes
 	    WHERE eventTypeName = ?`, typeName);
     
     if (eventTypeId[0][0])
@@ -210,7 +210,7 @@ async function getEventRepeatsById(eventId) {
 // get all events in the db by type
 async function getEventsByType(typeName) {
     let id = await pool.query(
-        `SELECT eventTypeId FROM artsy_dub.eventtypes
+        `SELECT eventTypeId FROM ${process.env.DB_NAME}.eventtypes
 	    WHERE eventTypeName = ?`, typeName);
     
     if(id[0].length==0) return;
@@ -225,7 +225,7 @@ async function getEventsByType(typeName) {
 // get all events in the db by genre
 async function getEventsByGenre(genreName) {
     let id = await pool.query(
-        `SELECT genreId FROM artsy_dub.genres
+        `SELECT genreId FROM ${process.env.DB_NAME}.genres
 	    WHERE name = ?`, genreName);
 
     if(id[0].length==0) return null;
