@@ -346,3 +346,7 @@ CREATE TABLE `postlikes` (
   CONSTRAINT `postlikes_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`),
   CONSTRAINT `postlikes_ibfk_2` FOREIGN KEY (`postId`) REFERENCES `posts` (`postId`)
 );
+-- user firebase id to replace password hash
+ALTER TABLE users 
+  ADD COLUMN `firebaseUid` varchar(255) DEFAULT NULL,
+  DROP COLUMN `passwordHash`;

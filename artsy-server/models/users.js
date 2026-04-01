@@ -37,6 +37,19 @@ class usersModel {
       throw err;
     }
   }
+  // add user interests into table
+  async addUserInterests(userId, genreIds) {
+    try {
+      const values = genreIds.map((genreId) => [userId, genreId]);
+
+      const QUERY = `INSERT INTO userInterests (userId, genreId) VALUES ?`;
+
+      await pool.query(QUERY, [values]);
+    } catch (err) {
+      console.error("Add User Interests Error: ", err);
+      throw err;
+    }
+  }
 
   //get user by username
   async getUsersByName(userName) {
