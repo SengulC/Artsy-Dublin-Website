@@ -18,7 +18,6 @@ class usersModel {
     try {
       const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
       const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, birthday, location, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-      //passwordHash → firebaseUid ↑
 
       const [result] = await pool.query(QUERY, [
         userName,
