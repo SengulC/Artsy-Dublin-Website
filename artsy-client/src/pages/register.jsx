@@ -1,43 +1,91 @@
 import { useState } from "react";
-import './Login.css';
-
-import loginImg from "../assets/images/login.png";
+import './Register.css';
+import registerImg from "../assets/images/register.jpeg";   // reuse same image
 import logoImg from "../assets/images/logo.png";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+const INTERESTS = [
+  { id: "film", label: "Film" },
+  { id: "theatre", label: "Theatre" },
+  { id: "exhibition", label: "Exhibition" },
+  { id: "music", label: "Music" },
+  { id: "dance",label: "Dance" },
+  { id: "comedy", label: "Comedy" },
+  { id: "opera", label: "Opera" },
+  { id: "sculpture", label: "Sculpture" },
+  { id: "photo", label: "Photography" },
+  { id: "craft",  label: "Crafts" },
+  { id: "book", label: "Book Club" },
+  { id: "food", label: "Food Festival" },
+];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login:", { email, password });
+export default function Register() {
+  const [firstName, setFirstName]       = useState("");
+  const [lastName, setLastName]         = useState("");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [selected, setSelected]         = useState(new Set());
+
+  const toggleInterest = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleSubmit = () => {
+    console.log("Register:", { firstName, lastName, email, password, interests: [...selected] });
   };
 
   return (
     <div className="page">
       <div className="card">
-        {/* Left: Form */}
+        {/* ── Left: Form ── */}
         <div className="formSection">
-          {/* Logo */}
           <div className="logoImg">
-            <img src={logoImg}></img>
+            <img src={logoImg} alt="logo" />
+          </div>
+          <h1 className="title">Join Artsy Dublin</h1>
+          <p className="subtitle">Log in and explore the best events in Dublin</p>
+
+          {/* Name */}
+          <div className="nameRow">
+            <div className="formGroup">
+              <label className="label">First Name</label>
+              <input
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                className="input"
+              />
+            </div>
+            <div className="formGroup">
+              <label className="label">Last Name</label>
+              <input
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                className="input"
+              />
+            </div>
           </div>
 
-          <h1 className="title">Welcome to Artsy Dublin</h1>
-          <p className="subtitle">Find new activities to join</p>
-
+          {/* Email */}
           <div className="formGroup">
-            <label className="label">Email</label>
+            <label className="label">E-mail</label>
             <input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               className="input"
             />
           </div>
 
+          {/* Password */}
           <div className="formGroup">
             <label className="label">Password</label>
             <div className="passwordWrap">
@@ -45,7 +93,7 @@ export default function Login() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="input passwordInput"
               />
               <button
@@ -67,14 +115,32 @@ export default function Login() {
                 )}
               </button>
             </div>
-            <div className="passwordMeta">
-              <span className="hint">Use 8 or more letters, and numbers</span>
-              <a href="#" className="forgotLink">Forgot Password?</a>
+            <span className="hint">Use a password with the more than 8 letters and numbers</span>
+          </div>
+
+          {/* Interests */}
+          <div className="interestSection">
+            <span className="interestLabel">
+              What genre of activity you would like?
+            </span>
+            <div className="interestGrid">
+              {INTERESTS.map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`interestBtn${selected.has(id) ? " selected" : ""}`}
+                  onClick={() => toggleInterest(id)}
+                >
+                  <span className="interestIcon">{icon}</span>
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <button onClick={handleSubmit} className="signInBtn">
-            Log In
+          {/* Submit */}
+          <button onClick={handleSubmit} className="signUpBtn">
+            Register
           </button>
 
           <div className="divider">
@@ -85,22 +151,22 @@ export default function Login() {
 
           <button className="socialBtn">
             <GoogleIcon />
-            Sign in with Google
+            Register with Google
           </button>
           <button className="socialBtn socialBtnSecond">
             <FacebookIcon />
-            Sign in with Facebook
+            Register with Facebook
           </button>
 
-          <p className="signupText">
-            Don't you have an account?{" "}
-            <a href="/register" className="signupLink">Sign up</a>
+          <p className="loginText">
+            Already had an account?{" "}
+            <a href="/login" className="loginLink">Log in now</a>
           </p>
         </div>
 
-        {/* Right: Artwork */}
+        {/* ── Right: Artwork ── */}
         <div className="imageSection">
-          <img src={loginImg} alt="Event picture" className="artwork" />
+          <img src={registerImg} alt="Event picture" className="artwork" />
         </div>
       </div>
     </div>

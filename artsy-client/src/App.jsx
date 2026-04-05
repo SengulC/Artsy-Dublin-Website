@@ -12,6 +12,7 @@ import EventCard from "./components/events/EventCard";
 import EventDetailPage from './pages/EventDetailPage'
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
+import Register from "./pages/register";
 
 import './index.css'
 import './styles/component.css'
@@ -178,6 +179,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   )
