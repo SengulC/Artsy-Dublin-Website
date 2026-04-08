@@ -29,9 +29,9 @@ function Header() {
                     <a href="#">MESSAGE</a>
                 </nav>
 
-                <button className="header__user-btn">
+                <a href="/login" className="header__user-btn">
                     <FontAwesomeIcon icon={faCircleUser} />
-                </button>
+                </a>
             </div>
         </header>
     )
