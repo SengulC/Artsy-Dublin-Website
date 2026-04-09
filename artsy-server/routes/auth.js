@@ -1,17 +1,16 @@
+// this is the router for authentication related stuff
+//functions:
+// A. generate Csrftoken (called in frontend before sending login info)
+// B. login
+// C. logout
+// D. check user session cookie
+
 const express = require("express");
 const router = express.Router();
-const admin = require("firebase-admin");
-
-router.get("/check-auth", async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.json({ isLoggedIn: false });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    res.json({ isLoggedIn: true, username: decoded.name });
-  } catch {
-    res.json({ isLoggedIn: false });
-  }
-});
+const authController = require("../controllers/authController");
+router.get("/csrf-token", authController.getCsrfToken);
+router.post("/sessionLogin", authController.sessionLogin);
+router.post("/sessionLogout", authController.sessionLogout);
+router.get("/check-auth", authController.checkAuth);
 
 module.exports = router;
