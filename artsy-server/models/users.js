@@ -1,19 +1,39 @@
 // this is where we handle all raw data relating to users from db
+//functions:
+//A. create user / register
+//B. get user by username
+//C. get all users
+//D. get user info by firebaseUid (used by checkAuth)
+//E. get user Attended Events
+//F. get user Stats: metrics of their interactions
+//G. get user Journal, with different sorted options: newest/oldest/highest/lowest
 
 const mysql2 = require("mysql2");
 const dbconfig = require("../utils/dbconfig");
 const pool = mysql2.createPool(dbconfig).promise();
 
 class usersModel {
-  async createUser(userName, avatarUrl, email, firebaseUid, bio, gender, interestsArray) {
+  //A. create user / register
+  async createUser(
+    userName,
+    avatarUrl,
+    email,
+    firebaseUid,
+    bio,
+    gender,
+    interestsArray,
+  ) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
+      //beginTransaction() wrap two steps:
+      //1. INSERT INTO users — creates the user row
+      //2. INSERT INTO userInterests — saves their selected genres
+      //if one fails, all fail
 
       // Step 1: Insert user
       const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
       const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-
       const [result] = await connection.query(QUERY, [
         userName,
         avatarUrl || null,
@@ -26,7 +46,7 @@ class usersModel {
 
       const userId = result.insertId;
 
-      // Step 2: Insert interests if provided, skipping those that don't exist in genres table
+      // Step 2: Insert interests if provided
       if (interestsArray && interestsArray.length > 0) {
         const [validGenres] = await connection.query(
           `SELECT genreId FROM genres WHERE genreId IN (?)`,
@@ -46,7 +66,7 @@ class usersModel {
       await connection.commit();
       return userId;
     } catch (err) {
-      await connection.rollback();
+      await connection.rollback(); //if one step fails, all fail
       console.error("Register Transaction Error: ", err);
       throw err;
     } finally {
@@ -54,8 +74,8 @@ class usersModel {
     }
   }
 
-  //get user by username
-  async getUsersByName(userName) {
+  //B. get user by username
+  async getUserByName(userName) {
     try {
       const [results] = await pool.query(
         `SELECT userId, userName, avatarUrl, bio, location, gender, createdAt 
@@ -64,12 +84,12 @@ class usersModel {
       );
       return results[0] || null;
     } catch (err) {
-      console.error("getUsersByName Error: ", err);
+      console.error("getUserByName Error: ", err);
       throw err;
     }
   }
 
-  //get allusers
+  //C. get all users
   async getUsersPool() {
     try {
       const [results] = await pool.query(
@@ -82,27 +102,21 @@ class usersModel {
     }
   }
 
-  // get userposts
-  async getUserPosts(userName) {
+  //D. get logined user info by firebaseUid
+  async getUserByFirebaseUid(firebaseUid) {
     try {
       const [results] = await pool.query(
-        `SELECT p.postId, p.content, p.likeCount, p.commentCount, p.createdAt,
-                pi.imageUrl
-         FROM posts p
-         LEFT JOIN postimages pi ON p.postId = pi.postId
-         JOIN users u ON p.userId = u.userId
-         WHERE u.userName = ? AND p.type = 1 AND p.isDeleted = 0
-         ORDER BY p.createdAt DESC`,
-        [userName],
+        `SELECT userId, userName, avatarUrl FROM users WHERE firebaseUid = ?`,
+        [firebaseUid],
       );
-      return results;
+      return results[0] || null;
     } catch (err) {
-      console.error("getUserPosts Error: ", err);
+      console.error("getUserByFirebaseUid Error: ", err);
       throw err;
     }
   }
 
-  // get user Attended Events
+  //E. get user Attended Events
   async getUserAttendedEvents(userName) {
     try {
       const [results] = await pool.query(
@@ -122,7 +136,7 @@ class usersModel {
     }
   }
 
-  // get user Stats
+  // F. get user Stats: metrics of their interactions
   async getUserStats(userName) {
     try {
       const [results] = await pool.query(
@@ -142,7 +156,7 @@ class usersModel {
     }
   }
 
-  // get user Journal
+  // G. get user Journal
   async getUserJournal(userName, sort) {
     const sortOptions = {
       newest: "p.createdAt DESC",
