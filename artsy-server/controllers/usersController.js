@@ -1,23 +1,18 @@
 // this is the controller for user related stuff
+//functions:
+//A. create user / register
+//B. get all users
+//C. get user by username
+//D. get user Attended Events
+//E. get user Stats: metrics of their interactions
+//F. get user Journal, with different sorted options: newest/oldest/highest/lowest
+
 
 const usersModel = require("../models/users");
 const { admin } = require("../utils/firebaseAdmin");
 
 class userController {
-  //fetch all users
-  async getUserByName(req, res) {
-    const userProfile = await usersModel.getUsersByName(req.params.username);
-    if (!userProfile) return res.status(404).send("user not found");
-    res.json(userProfile);
-  }
-  //fetch single user profile information
-  async getUsersPool(req, res) {
-    const usersPool = await usersModel.getUsersPool();
-    if (!usersPool) return res.status(404).send("user not found");
-    res.json(usersPool);
-  }
-
-  //create a new user
+  //A. create a new user/register
   async createUser(req, res) {
     try {
       const { userName, idToken, bio, gender, interests } = req.body;
@@ -26,20 +21,24 @@ class userController {
         return res.status(400).send("userName and idToken are required");
       }
 
+      //ask firebase to verify idToken and return decoded firebaseUid and email
       const decoded = await admin.auth().verifyIdToken(idToken);
       const firebaseUid = decoded.uid;
       const authEmail = decoded.email;
 
+      //get avatar url
       const avatarUrl = req.file
         ? `${req.protocol}://${req.get("host")}/uploads/avatars/${req.file.filename}`
         : null;
 
+      //get interest array
       const interestsArray = interests
         ? Array.isArray(interests)
           ? interests
           : JSON.parse(interests)
         : [];
 
+      //send all the info to model to be added to the database
       const userId = await usersModel.createUser(
         userName,
         avatarUrl,
@@ -49,10 +48,6 @@ class userController {
         gender,
         interestsArray,
       );
-
-      if (!userId) {
-        return res.status(500).send("User not created");
-      }
 
       res
         .status(201)
@@ -71,17 +66,22 @@ class userController {
       res.status(500).send("Internal Server Error");
     }
   }
-  // My Diary in home page
-  async getUserPosts(req, res) {
-    try {
-      const posts = await usersModel.getUserPosts(req.params.username);
-      res.json(posts);
-    } catch (error) {
-      console.error("getUserPosts Error:", error);
-      res.status(500).send("Internal Server Error");
-    }
+
+  //B. fetch single user profile information
+  async getUsersPool(req, res) {
+    const usersPool = await usersModel.getUsersPool();
+    if (!usersPool) return res.status(404).send("user not found");
+    res.json(usersPool);
   }
-  // Attended Events
+
+  //C. fetch all users
+  async getUserByName(req, res) {
+    const userProfile = await usersModel.getUserByName(req.params.username);
+    if (!userProfile) return res.status(404).send("user not found");
+    res.json(userProfile);
+  }
+
+  //D. Attended Events
   async getUserAttendedEvents(req, res) {
     try {
       const events = await usersModel.getUserAttendedEvents(
@@ -94,7 +94,7 @@ class userController {
     }
   }
 
-  // Stats
+  // E. Stats
   async getUserStats(req, res) {
     try {
       const stats = await usersModel.getUserStats(req.params.username);
@@ -105,7 +105,7 @@ class userController {
     }
   }
 
-  // Journal Entries
+  // F. Journal Entries
   async getUserJournal(req, res) {
     try {
       const sort = req.query.sort || "newest";
