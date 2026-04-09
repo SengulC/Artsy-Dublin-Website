@@ -218,3 +218,9 @@
     text-decoration: none;
     font-weight: 500;
 }
+
+.errorMsg {
+    color: red;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
