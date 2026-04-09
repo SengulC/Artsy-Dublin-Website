@@ -1,6 +1,7 @@
 // this is the controller for user related stuff
 
 const usersModel = require("../models/users");
+const { admin } = require("../utils/firebaseAdmin");
 
 class userController {
   //fetch all users
@@ -19,22 +20,15 @@ class userController {
   //create a new user
   async createUser(req, res) {
     try {
-      const {
-        userName,
-        email,
-        firebaseUid,
-        birthday,
-        location,
-        bio,
-        gender,
-        interests,
-      } = req.body;
+      const { userName, idToken, bio, gender, interests } = req.body;
 
-      if (!userName || !email || !firebaseUid) {
-        return res
-          .status(400)
-          .send("userName, email and firebaseUid are required");
+      if (!userName || !idToken) {
+        return res.status(400).send("userName and idToken are required");
       }
+
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      const firebaseUid = decoded.uid;
+      const authEmail = decoded.email;
 
       const avatarUrl = req.file
         ? `${req.protocol}://${req.get("host")}/uploads/avatars/${req.file.filename}`
@@ -49,10 +43,8 @@ class userController {
       const userId = await usersModel.createUser(
         userName,
         avatarUrl,
-        email,
+        authEmail,
         firebaseUid,
-        birthday,
-        location,
         bio,
         gender,
         interestsArray,

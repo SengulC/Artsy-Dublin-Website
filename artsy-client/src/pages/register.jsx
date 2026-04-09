@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import './Register.css';
 import registerImg from "../assets/images/register.jpeg";   // reuse same image
 import logoImg from "../assets/images/logo.png";
+
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 const INTERESTS = [
   { id: "film", label: "Film" },
@@ -19,24 +23,74 @@ const INTERESTS = [
 ];
 
 export default function Register() {
-  const [firstName, setFirstName]       = useState("");
-  const [lastName, setLastName]         = useState("");
-  const [email, setEmail]               = useState("");
-  const [password, setPassword]         = useState("");
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [selected, setSelected]         = useState(new Set());
+  const [selected, setSelected] = useState(new Set());
+  const [error, setError] = useState("");
 
   const toggleInterest = (id) => {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
 
-  const handleSubmit = () => {
-    console.log("Register:", { firstName, lastName, email, password, interests: [...selected] });
+  const handleSubmit = async () => {
+    setError("");
+    let firebaseUser = null;
+    try {
+      // 1. Create user in Firebase
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      firebaseUser = user;
+
+      // 2. Get the ID token
+      const idToken = await user.getIdToken();
+
+      // 3. Send token + profile data to the backend
+      const res = await fetch("/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idToken,
+          userName: username,
+          interests: [...selected],
+        }),
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+
+      // 4. Success — redirect to home
+      navigate("/");
+    } catch (err) {
+      // Roll back Firebase user if backend failed
+      if (firebaseUser) await firebaseUser.delete();
+
+      const firebaseErrors = {
+        "auth/email-already-in-use": "This email is already registered.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/invalid-email": "Invalid email address.",
+      };
+      setError(firebaseErrors[err.code] || err.message);
+    }
   };
+
+  // console.log("Register:", {
+  //   username,
+  //   email,
+  //   password,
+  //   interests: [...selected],
+  // });
 
   return (
     <div className="page">
@@ -47,30 +101,32 @@ export default function Register() {
             <img src={logoImg} alt="logo" />
           </div>
           <h1 className="title">Join Artsy Dublin</h1>
-          <p className="subtitle">Log in and explore the best events in Dublin</p>
+          <p className="subtitle">
+            Log in and explore the best events in Dublin
+          </p>
 
           {/* Name */}
           <div className="nameRow">
             <div className="formGroup">
-              <label className="label">First Name</label>
+              <label className="label">Username</label>
               <input
                 type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
+                placeholder="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="input"
               />
             </div>
-            <div className="formGroup">
+            {/* <div className="formGroup">
               <label className="label">Last Name</label>
               <input
                 type="text"
                 placeholder="Last name"
                 value={lastName}
-                onChange={e => setLastName(e.target.value)}
+                onChange={(e) => setLastName(e.target.value)}
                 className="input"
               />
-            </div>
+            </div> */}
           </div>
 
           {/* Email */}
@@ -80,7 +136,7 @@ export default function Register() {
               type="email"
               placeholder="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               className="input"
             />
           </div>
@@ -93,7 +149,7 @@ export default function Register() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 className="input passwordInput"
               />
               <button
@@ -102,20 +158,36 @@ export default function Register() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#999"
+                    strokeWidth="2"
+                  >
                     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
                     <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
                     <line x1="1" y1="1" x2="23" y2="23" />
                   </svg>
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#999"
+                    strokeWidth="2"
+                  >
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                 )}
               </button>
             </div>
-            <span className="hint">Use a password with the more than 8 letters and numbers</span>
+            <span className="hint">
+              Use a password with the more than 8 letters and numbers
+            </span>
           </div>
 
           {/* Interests */}
@@ -142,6 +214,11 @@ export default function Register() {
           <button onClick={handleSubmit} className="signUpBtn">
             Register
           </button>
+          {error && (
+            <p style={{ color: "red", fontSize: "0.85rem", marginTop: "8px" }}>
+              {error}
+            </p>
+          )}
 
           <div className="divider">
             <span className="dividerLine" />
@@ -160,7 +237,9 @@ export default function Register() {
 
           <p className="loginText">
             Already had an account?{" "}
-            <a href="/login" className="loginLink">Log in now</a>
+            <a href="/login" className="loginLink">
+              Log in now
+            </a>
           </p>
         </div>
 
@@ -171,8 +250,7 @@ export default function Register() {
       </div>
     </div>
   );
-}
-
+};
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" style={{ marginRight: 8 }}>

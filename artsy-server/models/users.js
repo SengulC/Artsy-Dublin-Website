@@ -5,32 +5,20 @@ const dbconfig = require("../utils/dbconfig");
 const pool = mysql2.createPool(dbconfig).promise();
 
 class usersModel {
-  async createUser(
-    userName,
-    avatarUrl,
-    email,
-    firebaseUid,
-    birthday,
-    location,
-    bio,
-    gender,
-    interestsArray,
-  ) {
+  async createUser(userName, avatarUrl, email, firebaseUid, bio, gender, interestsArray) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
       // Step 1: Insert user
       const createdAt = new Date().toISOString().slice(0, 19).replace("T", " ");
-      const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, birthday, location, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const QUERY = `INSERT INTO users (userName, avatarUrl, email, firebaseUid, bio, gender, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
       const [result] = await connection.query(QUERY, [
         userName,
         avatarUrl || null,
         email,
         firebaseUid,
-        birthday || null,
-        location || null,
         bio || null,
         gender || null,
         createdAt,
@@ -42,15 +30,15 @@ class usersModel {
       if (interestsArray && interestsArray.length > 0) {
         const [validGenres] = await connection.query(
           `SELECT genreId FROM genres WHERE genreId IN (?)`,
-          [interestsArray]
+          [interestsArray],
         );
 
-        const validIds = validGenres.map(g => g.genreId);
+        const validIds = validGenres.map((g) => g.genreId);
         if (validIds.length > 0) {
           const values = validIds.map((genreId) => [userId, genreId]);
           await connection.query(
             `INSERT INTO userInterests (userId, genreId) VALUES ?`,
-            [values]
+            [values],
           );
         }
       }
