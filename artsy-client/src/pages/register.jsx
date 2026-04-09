@@ -1,35 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import './Register.css';
 import registerImg from "../assets/images/register.jpeg";   // reuse same image
 import logoImg from "../assets/images/logo.png";
 
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, setPersistence, inMemoryPersistence } from "firebase/auth";
 import { auth } from "../firebase";
-
-const INTERESTS = [
-  { id: "film", label: "Film" },
-  { id: "theatre", label: "Theatre" },
-  { id: "exhibition", label: "Exhibition" },
-  { id: "music", label: "Music" },
-  { id: "dance",label: "Dance" },
-  { id: "comedy", label: "Comedy" },
-  { id: "opera", label: "Opera" },
-  { id: "sculpture", label: "Sculpture" },
-  { id: "photo", label: "Photography" },
-  { id: "craft",  label: "Crafts" },
-  { id: "book", label: "Book Club" },
-  { id: "food", label: "Food Festival" },
-];
 
 export default function Register() {
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [error, setError] = useState("");
+  const [genres, setGenres] = useState([]);
+
+  useEffect(() => {
+    fetch("/genres")
+      .then((r) => r.json())
+      .then((data) => setGenres(data))
+      .catch(() => {});
+  }, []);
 
   const toggleInterest = (id) => {
     setSelected((prev) => {
@@ -41,7 +36,9 @@ export default function Register() {
 
   const handleSubmit = async () => {
     setError("");
+    await setPersistence(auth, inMemoryPersistence);
     let firebaseUser = null;
+    let dbRegistered = false;
     try {
       // 1. Create user in Firebase
       const { user } = await createUserWithEmailAndPassword(
@@ -70,11 +67,28 @@ export default function Register() {
         throw new Error(msg);
       }
 
-      // 4. Success — redirect to home
-      navigate("/");
+      dbRegistered = true;
+
+      // 4. Create session cookie (same as login flow)
+      const csrfRes = await fetch("/api/csrf-token", {
+        credentials: "include",
+      });
+      const { csrfToken } = await csrfRes.json();
+      const freshToken = await user.getIdToken();
+      const sessionRes = await fetch("/api/sessionLogin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ idToken: freshToken, csrfToken }),
+      });
+      if (!sessionRes.ok) throw new Error("session_failed");
+
+      // 5. Success — redirect to home
+      await refreshAuth(); //update session cookie
+      navigate("/");//to homepage
     } catch (err) {
-      // Roll back Firebase user if backend failed
-      if (firebaseUser) await firebaseUser.delete();
+      // Roll back Firebase user only if DB registration hadn't completed
+      if (firebaseUser && !dbRegistered) await firebaseUser.delete();
 
       const firebaseErrors = {
         "auth/email-already-in-use": "This email is already registered.",
@@ -186,15 +200,14 @@ export default function Register() {
               What genre of activity you would like?
             </span>
             <div className="interestGrid">
-              {INTERESTS.map(({ id, label, icon }) => (
+              {genres.map(({ genreId, name }) => (
                 <button
-                  key={id}
+                  key={genreId}
                   type="button"
-                  className={`interestBtn${selected.has(id) ? " selected" : ""}`}
-                  onClick={() => toggleInterest(id)}
+                  className={`interestBtn${selected.has(genreId) ? " selected" : ""}`}
+                  onClick={() => toggleInterest(genreId)}
                 >
-                  <span className="interestIcon">{icon}</span>
-                  {label}
+                  {name}
                 </button>
               ))}
             </div>
