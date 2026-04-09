@@ -19,7 +19,7 @@ function Header() {
                         placeholder="Search events, artists, categories..."
                     />
                     <button className="search-bar__button" aria-label="Search">
-                        <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        <FontAwesomeIcon icon={faMagnifyingGlass} /><a href="/login"></a>
                     </button>
                 </div>
 
