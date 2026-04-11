@@ -12,3 +12,9 @@ Thumbs.db
 
 #at this stage everyone can call their db smth else
 eventsPO.sql
+
+#apikey for firebase
+serviceAccountKey.json
+
+#not adding the picture user upload into github
+public/uploads/

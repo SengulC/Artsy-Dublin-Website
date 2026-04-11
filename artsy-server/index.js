@@ -1,30 +1,39 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
-const fileUpload = require('express-fileupload');
+const cookieParser = require("cookie-parser");
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));//static path
 
-// must be before routes so req.files is available in controllers
-app.use(fileUpload({                                
-    limits: { fileSize: 5 * 1024 * 1024 },
-    abortOnLimit: true,
-    responseOnLimit: "File size exceeds the 5MB limit."
-})
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5500"],
+    credentials: true,
+  }),
 );
+app.use(cookieParser());
+app.use(express.json());
+
+const genresRouter = require("./routes/genres");
+app.use("/genres", genresRouter);
 
 const eventsRoute = require("./routes/events");
 app.use("/events", eventsRoute);
 
-const usersRoute = require("./routes/users")
+const usersRoute = require("./routes/users");
 app.use("/users", usersRoute);
 
-const postsRoute = require("./routes/posts")
-app.use("/posts", postsRoute);
+const authRoute = require("./routes/auth");
+app.use("/api", authRoute);
+
+//the images user used can be visit public
+app.use("/uploads", express.static("public/uploads"));
 
 app.listen(3005, () => {
-    console.log("Server running on http://localhost:3005")
-} )
+  console.log("Server running on http://localhost:3005");
+});
