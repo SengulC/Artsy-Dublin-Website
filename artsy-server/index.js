@@ -1,13 +1,25 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const admin = require("firebase-admin");
 const serviceAccount = require("./serviceAccountKey.json");
 
 const app = express();
+const server = http.createServer(app);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+});
+
+// Socket.io — allow the Vite dev origin with credentials so the session
+// cookie is forwarded on the WebSocket upgrade handshake.
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  },
 });
 
 app.use(
@@ -31,9 +43,16 @@ app.use("/users", usersRoute);
 const authRoute = require("./routes/auth");
 app.use("/api", authRoute);
 
-//the images user used can be visit public
+const messagesRoute = require("./routes/messages");
+app.use("/messages", messagesRoute);
+
+// Static uploads served from public/uploads
 app.use("/uploads", express.static("public/uploads"));
 
-app.listen(3005, () => {
+// Register all Socket.io event handlers
+const registerSocketHandlers = require("./sockets/messaging");
+registerSocketHandlers(io);
+
+server.listen(3005, () => {
   console.log("Server running on http://localhost:3005");
 });
