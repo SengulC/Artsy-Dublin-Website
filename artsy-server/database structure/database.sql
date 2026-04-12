@@ -127,7 +127,6 @@ ALTER TABLE users
   ADD COLUMN `firebaseUid` varchar(255) DEFAULT NULL,
   DROP COLUMN `passwordHash`;
 
-
 ------MESSAGING--------------------------------------------------------------
 -- One row per unique user pair. userAId is always the smaller userId to
 -- enforce a natural unique constraint (no duplicate reversed pairs).
@@ -157,5 +156,6 @@ CREATE TABLE `messages` (
   CONSTRAINT `msg_ibfk_1` FOREIGN KEY (`conversationId`) REFERENCES `conversations` (`conversationId`),
   CONSTRAINT `msg_ibfk_2` FOREIGN KEY (`senderId`)  REFERENCES `users` (`userId`)
 );
+
 
 
