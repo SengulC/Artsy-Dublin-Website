@@ -74,8 +74,8 @@ class MessagesModel {
            u.userName AS senderName, u.avatarUrl AS senderAvatar
            FROM messages m
            JOIN users u ON u.userId = m.senderId
-          WHERE m.conversationId = ?
-          ORDER BY m.createdAt ASC`,
+         WHERE m.conversationId = ?
+         ORDER BY m.createdAt ASC`,
        [conversationId] ,
      );
      return messages;
@@ -97,86 +97,88 @@ class MessagesModel {
       );
 
       await connection.query(
-        `UPDATE conversations SET lastMessageAt = NOW() WHERE conversationId = ?`,
-        [conversationId],
+       `UPDATE conversations SET lastMessageAt = NOW() WHERE conversationId = ?`,
+       [conversationId],
       );
 
-      await connection.commit();
-      return result.insertId;
+     await connection.commit();
+     return result.insertId;
     } catch (err) {
-      await connection.rollback();
-      console.error("saveMessage Error:", err);
-      throw err;
+     await connection.rollback();
+     console.error("saveMessage Error:", err);
+     throw err;
     } finally {
-      connection.release();
+     connection.release();
     }
   }
 
   // 5. Mark all unread messages in a conversation as read (only messages from the other user)
   async markConversationRead(conversationId, userId) {
-    try {
-      await pool.query(
-        `UPDATE messages
-            SET isRead = 1
-          WHERE conversationId = ? AND senderId != ? AND isRead = 0`,
-        [conversationId, userId],
+   try {
+     await pool.query(
+       `UPDATE messages
+           SET isRead = 1
+         WHERE conversationId = ? AND senderId != ? AND isRead = 0`,
+       [conversationId, userId],
       );
     } catch (err) {
-      console.error("markConversationRead Error:", err);
-      throw err;
+     console.error("markConversationRead Error:", err);
+     throw err;
     }
   }
 
   // 6. Delete all messages then the conversation row. Returns false if not a participant.
   async deleteConversation(conversationId, userId) {
-    const allowed = await this.isParticipant(conversationId, userId);
-    if (!allowed) return false;
+   const allowed = await this.isParticipant(conversationId, userId);
+   if (!allowed) return false;
 
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      await connection.query(`DELETE FROM messages WHERE conversationId = ?`, [conversationId]);
-      await connection.query(`DELETE FROM conversations WHERE conversationId = ?`, [conversationId]);
-      await connection.commit();
-      return true;
+   const connection = await pool.getConnection();
+   try {
+     await connection.beginTransaction();
+     await connection.query(`DELETE FROM messages WHERE conversationId = ?`, [conversationId]);
+     await connection.query(`DELETE FROM conversations WHERE conversationId = ?`, [conversationId]);
+     await connection.commit();
+     return true ;
     } catch (err) {
-      await connection.rollback();
-      console.error("deleteConversation Error:", err);
-      throw err;
-    } finally {
-      connection.release();
+     await  connection.rollback();
+     console.error("deleteConversation Error:", err);
+     throw err;
+    }finally {
+     connection.release();
     }
   }
 
   // 7. Check whether a user is a participant in a conversation, auth helper
   async isParticipant(conversationId, userId) {
-    try {
-      const [rows] = await pool.query(
+   try {
+     const [rows] = await pool.query(
         `SELECT conversationId
            FROM conversations
-          WHERE conversationId = ? AND (userAId = ? OR userBId = ?)`,
-        [conversationId, userId, userId],
+         WHERE conversationId = ? AND (userAId = ? OR userBId = ?)`,
+       [conversationId, userId, userId],
       );
-      return rows.length > 0;
-    } catch (err) {
-      console.error("isParticipant Error:", err);
-      throw err;
+
+     return rows.length > 0;
+    } catch (err){
+     console.error("isParticipant Error:", err);
+     throw err;
     }
   }
 
   // 8. Return userAId and userBId so the socket handler knows who to notify
   async getConversationParticipants(conversationId) {
-    try {
-      const [rows] = await pool.query(
-        `SELECT userAId, userBId FROM conversations WHERE conversationId = ?`,
-        [conversationId],
+   try {
+     const [rows]= await pool.query(
+       `SELECT userAId, userBId FROM conversations WHERE conversationId = ?`,
+       [conversationId],
       );
-      return rows[0] || null;
+     return rows[0] || null;
     } catch (err) {
-      console.error("getConversationParticipants Error:", err);
-      throw err;
+     console.error("getConversationParticipants Error:", err);
+     throw err;
     }
   }
+
 }
 
 

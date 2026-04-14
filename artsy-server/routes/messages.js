@@ -1,4 +1,4 @@
-// Messages router — all routes require an authenticated session.
+//  all routes require an authenticated session
 
 const express = require("express");
 const router = express.Router();
@@ -8,7 +8,7 @@ const {
   getInbox,
   getConversation,
   deleteConversation,
-} = require("../controllers/messagesController");
+}= require("../controllers/messagesController");
 
 router.use(authenticate);
 
