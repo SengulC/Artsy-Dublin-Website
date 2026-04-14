@@ -1,6 +1,5 @@
-// Messages model — all raw DB access for the messaging system.
-// Functions:
-// A. findOrCreateConversation  — get or create a conversation between two users
+
+// 1.findOrCreateConversation -get or create a conversation between two users
 // B. getConversationsForUser   — inbox: all conversations with preview + unread count
 // C. getMessagesByConversation — full message history (verifies participant first)
 // D. saveMessage               — insert a message and bump lastMessageAt

@@ -13,8 +13,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// Socket.io — allow the Vite dev origin with credentials so the session
-// cookie is forwarded on the WebSocket upgrade handshake.
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173"],
@@ -49,7 +47,7 @@ app.use("/messages", messagesRoute);
 // Static uploads served from public/uploads
 app.use("/uploads", express.static("public/uploads"));
 
-// Register all Socket.io event handlers
+// Register all socket io event handlers
 const registerSocketHandlers = require("./sockets/messaging");
 registerSocketHandlers(io);
 
