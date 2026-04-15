@@ -14,3 +14,28 @@ OR http://localhost:5173/register
 
 then go to messages section and start testing
 
+
+5 
+
+ 
+
+Messaging System 
+
+ 
+1. Send message to other people  
+
+A message button in other user's profile 
+
+User cannot send images/video, it is only text available.  
+
+
+
+2. Message Management 
+
+Inbox shows conversations list (newest first). Each shows: other user's name/picture, last message preview, unread badge, timestamp.  
+
+If chat opened and messages seen it is marked as read. If no – it is unread and appropriate symbol is present marking as unread 
+
+User can delete conversation (confirmation required). 
+
+ 
