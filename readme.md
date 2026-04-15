@@ -1,31 +1,11 @@
-<h1>Artsy Dublin</h1>
+run npm install in both folders to pick up the two new packages:
 
-_<h3>Find artsy events near you, tailored for you! Only in Dublin.</h3>_
+cd artsy-server -> npm install
 
-_Website is a work in progress..._
+cd artsy-client -> npm install
 
-<h4>THE TEAM</h4>
-Backend team: Ge, Sengul, Krystyna, Astrid <br>
-Frontend team: Emma, Brian
+npm run dev on client and server
 
-[3.28] - Astrid
+login to these or create your own to check chatting pupa@gmail.com - pswrd: pupalupa 
+sisi@gmail.com - pswrd: sisisi
 
-Migrated user authentication from JWT to Firebase
-
-Added Firebase Admin SDK integration in index.js
-
-Replaced passwordHash with firebaseUid in users table and model
-
-Added GET /users/:username endpoint to fetch user profile
-
-Added GET /users/:username/posts endpoint for user diary posts
-
-Added GET /users/:username/attended-events endpoint for attended events
-
-Added GET /users/:username/stats endpoint for review statistics
-
-Added GET /users/:username/journal endpoint for journal entries with sort support
-
-Added GET /api/check-auth endpoint for Firebase token verification
-
-Removed JWT login route and bcrypt password handling
