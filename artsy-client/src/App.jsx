@@ -13,24 +13,22 @@ import EventDetailPage from './pages/EventDetailPage'
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
 import Register from "./pages/register";
-import Me from "./pages/Me";
-
+import TeamPage from "./pages/TeamPage";
 
 import './index.css'
 import './styles/component.css'
 import './styles/pages/home.css'
 
 function HomePage() {
-  const [activeFilters, setActiveFilters] = useState([]);
+  const [events, setEvents] = useState(mockEvents);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [activeCategories, setActiveCategories] = useState([]);
   const [activeDate, setActiveDate] = useState("Upcoming");
   const [sortOrder, setSortOrder] = useState("Soonest");
   const [visibleCount, setVisibleCount] = useState(8);
 
-  useEffect(() => {
-    setVisibleCount(8);
-  }, [activeFilters]);
-  // const [events, setEvents] = useState([]);
 
   // useEffect(() => {
   //   fetch("http://localhost:3005/events")
@@ -41,6 +39,53 @@ function HomePage() {
   //     })
   //     .catch(err => console.error(err));
   // }, []);
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [activeCategories, activeDate, sortOrder]);
+
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:3005";
+
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch(`${API_BASE_URL}/events`);
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch events");
+        }
+
+        const data = await res.json();
+
+        const normalizedEvents = data.map((event, index) => ({
+          eventId: event.eventId ?? index,
+          title: event.title ?? "",
+          url: event.url ?? "",
+          description: event.description ?? "",
+          venue: event.venue ?? "",
+          startDateTime: event.startDateTime ?? "",
+          posterUrl: event.posterUrl ?? event.posterURL ?? "",
+          attendCount: event.attendCount ?? 0,
+          reviewCount: event.reviewCount ?? 0,
+          saveCount: event.saveCount ?? 0,
+          eventTypeId: event.eventTypeId ?? ""
+        }));
+
+        setEvents(normalizedEvents);
+      } catch (err) {
+        console.error("Error loading events:", err);
+        setError("Could not load live events. Showing mock data instead.");
+        setEvents(mockEvents);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEvents();
+  }, []);
 
   function getEventTags(event) {
     if (event.eventTypeId === "tmdbFilm") return ["Film"];
@@ -52,7 +97,7 @@ function HomePage() {
 
   const today = new Date();
 
-  const filteredEvents = mockEvents
+  const filteredEvents = events
     .filter((event) => {
       const matchesCategory =
         activeCategories.length === 0 ||
@@ -126,8 +171,14 @@ function HomePage() {
           />
         </div>
 
+        {loading && <p className="status-message">Loading events...</p>}
+        {error && <p className="status-message error">{error}</p>}
+        {filteredEvents.length === 0 && !loading && (
+          <p className="status-message">No matching events found.</p>
+        )}
+
         <div className="events_grid">
-          {filteredEvents.slice(0, visibleCount).map((event, index) => (
+          {filteredEvents.slice(0, visibleCount).map((event) => (
             <EventCard
               key={event.eventId}
               event={event}
@@ -148,7 +199,7 @@ function HomePage() {
 
         <MarqueeText />
 
-        <CalendarSection events={mockEvents} />
+        <CalendarSection events={events} />
         <Footer />
       </div>
 
@@ -156,8 +207,9 @@ function HomePage() {
   );
 }
 
-
 function CalendarSection({ events }) {
+  const datedEvents = events.filter(event => event.startDateTime);
+
   return (
     <section className="calendar">
 
@@ -177,7 +229,7 @@ function CalendarSection({ events }) {
         </div>
 
         <div className="calendar__grid">
-          {events.slice(0, 3).map(event => (
+          {datedEvents.slice(0, 3).map(event => (
             <EventCard key={event.eventId} event={event} />
           ))}
         </div>
@@ -191,7 +243,7 @@ function CalendarSection({ events }) {
         </div>
 
         <div className="calendar__grid">
-          {events.slice(3, 6).map(event => (
+          {datedEvents.slice(3, 6).map(event => (
             <EventCard key={event.eventId} event={event} />
           ))}
         </div>
@@ -219,10 +271,20 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={
+          <div className="auth-layout">
+            <div className="auth-bg-blur" aria-hidden="true"><HomePage /></div>
+            <Login />
+          </div>
+        } />
         <Route path="/events/:id" element={<EventDetailPage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/me" element={<Me />} />
+        <Route path="/register" element={
+          <div className="auth-layout">
+            <div className="auth-bg-blur" aria-hidden="true"><HomePage /></div>
+            <Register />
+          </div>
+        } />
+        <Route path="/team" element={<TeamPage />} />
       </Routes>
     </BrowserRouter>
   )
