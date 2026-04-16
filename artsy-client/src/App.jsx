@@ -10,10 +10,13 @@ import Footer from "./components/layout/Footer"
 // import mockEvents from "./mock/events";
 import EventCard from "./components/events/EventCard";
 import EventDetailPage from './pages/EventDetailPage'
+import PostDetailPage from "./pages/PostDetailPage";
+import PostsPage from "./pages/PostsPage";
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
 import Register from "./pages/register";
-import TeamPage from "./pages/TeamPage";
+import TeamPage from "./pages/TeamPage"
+import Me from "./pages/Me";
 
 import './index.css'
 import './styles/component.css'
@@ -44,7 +47,7 @@ function HomePage() {
   }, [activeCategories, activeDate, sortOrder]);
 
   const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:3005";
+    import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     async function loadEvents() {
@@ -285,9 +288,13 @@ function App() {
           </div>
         } />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/me" element={<Me />} />
+        <Route path="/posts/:id" element={<PostDetailPage />} />
+        <Route path="/posts" element={<PostsPage />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
 export default App
