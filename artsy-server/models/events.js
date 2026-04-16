@@ -77,7 +77,6 @@ async function fetchFilmsAndPopulate() {
             }
         }
     }
-    
     return filmsData;
 }
 
@@ -181,6 +180,7 @@ async function fetchLiveEventsAndPopulate(typeName) {
             }
         }
     }
+    console.log(eventsData[0]);
     return eventsData;
 }
 
