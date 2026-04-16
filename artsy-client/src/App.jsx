@@ -13,6 +13,7 @@ import EventDetailPage from './pages/EventDetailPage'
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
 import Register from "./pages/register";
+import TeamPage from "./pages/TeamPage";
 
 import './index.css'
 import './styles/component.css'
@@ -42,24 +43,42 @@ function HomePage() {
     setVisibleCount(8);
   }, [activeCategories, activeDate, sortOrder]);
 
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:3005";
+
   useEffect(() => {
     async function loadEvents() {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("http://localhost:3005/events");
+        const res = await fetch(`${API_BASE_URL}/events`);
 
         if (!res.ok) {
           throw new Error("Failed to fetch events");
         }
 
         const data = await res.json();
-        setEvents(data);
+
+        const normalizedEvents = data.map((event, index) => ({
+          eventId: event.eventId ?? index,
+          title: event.title ?? "",
+          url: event.url ?? "",
+          description: event.description ?? "",
+          venue: event.venue ?? "",
+          startDateTime: event.startDateTime ?? "",
+          posterUrl: event.posterUrl ?? event.posterURL ?? "",
+          attendCount: event.attendCount ?? 0,
+          reviewCount: event.reviewCount ?? 0,
+          saveCount: event.saveCount ?? 0,
+          eventTypeId: event.eventTypeId ?? ""
+        }));
+
+        setEvents(normalizedEvents);
       } catch (err) {
         console.error("Error loading events:", err);
         setError("Could not load live events. Showing mock data instead.");
-        setEvents(mockEvents); // fallback
+        setEvents(mockEvents);
       } finally {
         setLoading(false);
       }
@@ -265,6 +284,7 @@ function App() {
             <Register />
           </div>
         } />
+        <Route path="/team" element={<TeamPage />} />
       </Routes>
     </BrowserRouter>
   )
