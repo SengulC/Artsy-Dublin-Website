@@ -7,7 +7,7 @@ import bgl from './assets/images/bgl.png'
 
 import Header from "./components/layout/Header"
 import Footer from "./components/layout/Footer"
-import mockEvents from "./mock/events";
+// import mockEvents from "./mock/events";
 import EventCard from "./components/events/EventCard";
 import EventDetailPage from './pages/EventDetailPage'
 import FilterBar from "./components/events/FilterBar";
@@ -20,7 +20,7 @@ import './styles/component.css'
 import './styles/pages/home.css'
 
 function HomePage() {
-  const [events, setEvents] = useState(mockEvents);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -78,7 +78,7 @@ function HomePage() {
       } catch (err) {
         console.error("Error loading events:", err);
         setError("Could not load live events. Showing mock data instead.");
-        setEvents(mockEvents);
+        setEvents([]);
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import mockEvents from "../mock/events";
@@ -25,14 +25,74 @@ import '../styles/pages/event-detail.css'
 function EventDetailPage() {
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
+    const [event, setEvent] = useState(null);
+    const [relatedEvents, setRelatedEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const { id } = useParams();
 
-    const event = mockEvents.find(
-        (item) => item.eventId === Number(id)
-    );
+    const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:3005";
+
+    useEffect(() => {
+        async function loadEvent() {
+            try {
+                setLoading(true);
+                setError("");
+
+                const res = await fetch(`${API_BASE_URL}/events/event/${id}`);
+                console.log("detail response status:", res.status);
+
+                if (!res.ok) {
+                    throw new Error("Failed to fetch event");
+                }
+
+                const data = await res.json();
+                console.log("detail fetched data:", data);
+                const normalizedEvent = {
+                    eventId: data.eventId ?? Number(id),
+                    title: data.title ?? "",
+                    url: data.url ?? "",
+                    description: data.description ?? "",
+                    venue: data.venue ?? "",
+                    startDateTime: data.startDateTime ?? "",
+                    posterUrl: data.posterUrl ?? data.posterURL ?? "",
+                    eventTypeId: data.eventTypeId ?? "",
+                    eventTypeName: data.eventTypeName ?? "",
+                    eventRepeats: data.eventRepeats ?? [],
+                    attendance: data.attendance ?? null,
+                };
+
+                setEvent(normalizedEvent);
+
+                // 暫時先用 mockEvents 算 related，之後再改成 live data
+                const related = mockEvents
+                    .filter((item) => item.eventId !== normalizedEvent.eventId)
+                    .filter((item) => item.eventTypeId === normalizedEvent.eventTypeId)
+                    .slice(0, 6);
+
+                setRelatedEvents(related);
+            } catch (err) {
+                console.error("Error loading event:", err);
+                setError("Could not load event details.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadEvent();
+    }, [id, API_BASE_URL]);
+
+    if (loading) {
+        return <p className="status-message">Loading event...</p>;
+    }
+
+    if (error) {
+        return <p className="status-message error">{error}</p>;
+    }
 
     if (!event) {
-        return <p>Event not found</p>;
+        return <p className="status-message">Event not found.</p>;
     }
 
     function getEventTags(event) {
@@ -42,16 +102,6 @@ function EventDetailPage() {
             ? event.description.split(",").map(tag => tag.trim())
             : [];
     }
-
-    const currentTags = getEventTags(event);
-
-    const relatedEvents = mockEvents
-        .filter((item) => item.eventId !== event.eventId)
-        .filter((item) => {
-            const itemTags = getEventTags(item);
-            return itemTags.some(tag => currentTags.includes(tag));
-        })
-        .slice(0, 6);
 
 
     const formattedDate = event.startDateTime
@@ -86,7 +136,7 @@ function EventDetailPage() {
                 <main className="event-detail">
                     <div className="event-detail_image-wrap">
                         <img
-                            src={event.posterUrl}
+                            src={event.posterUrl || "https://via.placeholder.com/600x800?text=No+Image"}
                             alt={event.title}
                             className="event-detail_image"
                         />
@@ -130,14 +180,24 @@ function EventDetailPage() {
                             </div>
 
                             <p className="event-detail_description">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is where
-                                your event detail description can go later when backend data is ready.
+                                {event.description || "More event details coming soon."}
                             </p>
                         </div>
                         <div className="event-actions">
-                            <a href={event.url} target="_blank" rel="noopener noreferrer"
-                                className="btn btn-primary"
-                            >Get Tickets</a>
+                            {event.url ? (
+                                <a
+                                    href={event.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-primary"
+                                >
+                                    Get Tickets
+                                </a>
+                            ) : (
+                                <button className="btn btn-primary" disabled>
+                                    Tickets Unavailable
+                                </button>
+                            )}
 
                             <button className="btn btn-outline">Log attendance</button>
                         </div>
