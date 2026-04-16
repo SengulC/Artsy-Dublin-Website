@@ -246,7 +246,7 @@ async function getEventsByType(typeName) {
     return results;
 }
 
-// get all events in the db by genre
+// get all events in the db by genrename
 async function getEventsByGenre(genreName) {
     let id = await pool.query(
         `SELECT genreId FROM ${process.env.DB_NAME}.genres
@@ -268,6 +268,34 @@ async function getEventsByGenre(genreName) {
     return results;
 }
 
+// get all events in the db by genreid
+async function getEventsByGenreId(genreId) {
+    const [results] = await pool.query(
+    `SELECT e.eventId, e.title, e.url, e.posterUrl, e.venue, e.startDateTime, e.eventTypeId 
+        FROM events e
+        INNER JOIN eventtags t
+            ON e.eventId = t.eventId
+        LEFT JOIN genres g 
+            ON t.genreId = g.genreId
+            WHERE g.genreId = ?
+        GROUP BY 
+            e.eventId, e.title, e.url, e.posterUrl, e.venue, e.startDateTime, e.eventTypeId, g.genreId`, genreId);
+    return results;
+}
+
+async function getPersonalizedEvents(userid) {
+    let [userGenres] = await pool.query(
+        `SELECT genreId FROM userinterests
+        WHERE userId = ?`, userid);
+
+    // loop thru users' interests and return events matching that genre.
+    let [userEvents] = await userGenres.map(async (id) => 
+        {
+            return await getEventsByGenreId(id.genreId);
+        } 
+    )
+    return userEvents;
+}
 
 // helper function to check if an event already exists in the db via its title
 async function getEventByTitle(title) {
@@ -285,5 +313,6 @@ module.exports = {
     getEventById,
     getEventRepeatsById,
     getEventsByType,
-    getEventsByGenre
+    getEventsByGenre,
+    getPersonalizedEvents
 };
