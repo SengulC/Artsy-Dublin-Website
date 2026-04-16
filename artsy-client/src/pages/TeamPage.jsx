@@ -52,7 +52,7 @@ export default function TeamPage() {
         {
             id: 4,
             number: "04/",
-            name: "EMMA TIANYI",
+            name: "EMMA",
             role: "UI / FRONTEND",
             intro: "Worked on wireframes, user pages, login and signup design, and frontend structure.",
             location: "Based in Dublin",
