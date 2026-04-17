@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   const refreshAuth = useCallback(async () => {
     console.log("checking session");
     try {
-      const res = await fetch(`/api/check-auth`, { credentials: "include" });
+      const res = await fetch(`/ad-auth/check-auth`, { credentials: "include" });
       if (res.ok) {
         const user = await res.json();
         setFirebaseUser({
