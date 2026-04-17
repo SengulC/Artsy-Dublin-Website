@@ -36,8 +36,8 @@ function HomePage() {
     setVisibleCount(8);
   }, [activeCategories, activeDate, sortOrder]);
 
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL;
+  // const API_BASE_URL =
+  //   import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     async function loadEvents() {
@@ -45,7 +45,7 @@ function HomePage() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_BASE_URL}/events`);
+        const res = await fetch(`/ad-events`);
 
         if (!res.ok) {
           throw new Error("Failed to fetch events");
