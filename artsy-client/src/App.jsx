@@ -18,7 +18,6 @@ import Register from "./pages/register";
 import TeamPage from "./pages/TeamPage"
 import Chat from "./pages/Chat"
 import Inbox from "./pages/Inbox"
-import UserProfile from './pages/UserProfile';
 import Me from "./pages/Me";
 
 import './index.css'
@@ -287,6 +286,7 @@ function App() {
         <Route path="/posts" element={<PostsPage />} />
         <Route path="/messages" element={<Inbox />} />
         <Route path="/messages/:conversationId" element={<Chat />} />
+        {/* <Route path="/profile " element={<Me />} /> */}
         {/* <Route path="/messages" element={<Inbox />} /> */}
 
       </Routes>
