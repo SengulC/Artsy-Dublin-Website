@@ -19,7 +19,7 @@ export default function UserProfile() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`/users/${username}`, { credentials: "include" })
+    fetch(`/ad-users/${username}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("User not found");
         return res.json();
