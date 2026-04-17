@@ -53,9 +53,9 @@ function Header() {
                 </div>
 
                 <nav className="header__nav">
-                    <a href="#">ALL EVENTS</a>
-                    <a href="#">COMMUNITY</a>
-                    <a href="#">MESSAGE</a>
+                    <Link to="/events">ALL EVENTS</Link>
+                    <Link to="/posts">COMMUNITY</Link>
+                    <Link to="/messages">MESSAGE</Link>
                 </nav>
 
                 {dbUser ? (
