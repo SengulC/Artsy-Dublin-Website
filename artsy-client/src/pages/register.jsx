@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import './register.css';
+import '../styles/pages/register.css';
 import registerImg from "../assets/images/register.jpeg";
 import logoImg from "../assets/images/logo.png";
 

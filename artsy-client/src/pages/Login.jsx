@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import './Login.css';
+import '../styles/pages/Login.css';
 
 import loginImg from "../assets/images/login.png";
 import logoImg from "../assets/images/logo.png";

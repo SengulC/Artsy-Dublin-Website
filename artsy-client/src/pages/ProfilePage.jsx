@@ -5,7 +5,7 @@ import Footer from "../components/layout/Footer";
 import EventCard from "../components/events/EventCard";
 import { useAuth } from "../context/AuthContext";
 import bgl from "../assets/images/bgl.png";
-import "./ProfilePage.css";
+import "../styles/pages/ProfilePage.css";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -63,7 +63,7 @@ export default function ProfilePage() {
     <div className="profile-page">
       <Header />
 
-      <div className="profile-bgl" aria-hidden="true">
+      <div className="bgl" aria-hidden="true">
         <img src={bgl} alt="" />
       </div>
 
