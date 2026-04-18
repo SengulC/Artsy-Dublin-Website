@@ -1,41 +1,21 @@
-run npm install in both folders to pick up the two new packages:
+<h1>ARTSY DUBLIN WEBSITE</h1>
 
-cd artsy-server -> npm install
+**Backend team:** Astrid, Ge, Krystyna and Sengul
 
-cd artsy-client -> npm install
+**Frontend team:** Brian and Emma
 
-npm run dev on client and server
+<h3>Project Overview</h3>
 
-login to these or create your own to check chatting pupa@gmail.com - pswrd: pupalupa 
-sisi@gmail.com - pswrd: sisisi
+- An event suggesting platform based for artsy events in Dublin
+- Fetches data from Ticketmaster and TMDB APIs for art-based events in Dublin and films showing in Irish theaters, respectively
+- Users can create accounts with their interests, get personalized event suggestions, and connect with other users to attend events together!
 
-http://localhost:5173/login to login 
-OR http://localhost:5173/register 
+<h3> Instructions to Reproduce </h3>
 
-then go to messages section and start testing
-
-
-5 
-
- 
-
-Messaging System 
-
- 
-1. Send message to other people  
-
-A message button in other user's profile 
-
-User cannot send images/video, it is only text available.  
-
-
-
-2. Message Management 
-
-Inbox shows conversations list (newest first). Each shows: other user's name/picture, last message preview, unread badge, timestamp.  
-
-If chat opened and messages seen it is marked as read. If no – it is unread and appropriate symbol is present marking as unread 
-
-User can delete conversation (confirmation required). 
+- Install the GitHub repositories for frontend/backend, respectively @ [FRONTEND_REPO] & [BACKEND_REPO]
+- Download .env and serviceAccountKey.JSON files at privately shared Google Drive and include in frontend folder
+- Navigate to the frontend folder if you haven't already, and run 'npm install'
+- Then, the frontend is ready to launch via 'run npm dev'
+- The backend is deployed @ https://2526-cs7025-group2.scss.tcd.ie/ but the aforementioned backend GitHub repository stores the latest version of the code on the SCSS server
 
  
