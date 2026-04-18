@@ -20,6 +20,7 @@ import Inbox from "./pages/Inbox"
 import Me from "./pages/Me";
 import Chat from "./pages/Chat";
 import UserProfile from "./pages/UserProfile";
+import ProfilePage from "./pages/ProfilePage";
 
 import './index.css'
 import './styles/component.css'
@@ -441,6 +442,7 @@ function App() {
         <Route path="/messages" element={<Inbox />} />
         <Route path="/messages/:conversationId" element={<Chat />} />
         <Route path="/users/:username" element={<UserProfile />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );

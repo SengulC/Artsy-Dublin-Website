@@ -122,7 +122,7 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
                         {menuOpen && (
                             <div className="header__dropdown">
                                 <Link
-                                    to="/me"
+                                    to="/profile"
                                     className="header__dropdown-item"
                                     onClick={() => {
                                         setMenuOpen(false);
