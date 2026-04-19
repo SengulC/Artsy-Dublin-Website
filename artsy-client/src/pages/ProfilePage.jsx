@@ -7,8 +7,6 @@ import { useAuth } from "../context/AuthContext";
 import bgl from "../assets/images/bgl.png";
 import "../styles/pages/ProfilePage.css";
 
-const API = import.meta.env.VITE_API_URL;
-
 function SkeletonGrid() {
   return (
     <div className="profile-events-grid">
@@ -35,9 +33,9 @@ export default function ProfilePage() {
       setLoading(true);
       try {
         const [profileRes, attendedRes, savedRes] = await Promise.all([
-          fetch(`${API}/users/${username}`),
-          fetch(`${API}/users/${username}/attended-events`),
-          fetch(`${API}/users/${username}/saved-events`),
+          fetch(`/ad-users/${username}`, { credentials: "include" }),
+          fetch(`/ad-users/${username}/attended-events`, { credentials: "include" }),
+          fetch(`/ad-users/${username}/saved-events`, { credentials: "include" }),
         ]);
         if (profileRes.ok)  setProfile(await profileRes.json());
         if (attendedRes.ok) setAttendedEvents(await attendedRes.json());

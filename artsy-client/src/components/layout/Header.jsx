@@ -4,7 +4,6 @@ import "../../index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faMagnifyingGlass,
-    faCircleUser,
     faBars,
     faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -98,7 +97,7 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
                     <AnimatedTextLink to="/team" text="TEAM" />
                 </nav>
 
-                {dbUser ? (
+                {dbUser?.userName ? (
                     <div className="header__user-wrap" ref={menuRef}>
                         <button
                             type="button"
@@ -144,11 +143,10 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
                 ) : (
                     <Link
                         to="/login"
-                        className="header__user-btn"
-                        title="Login"
+                        className="header__signin-btn"
                         onClick={closeMobileMenu}
                     >
-                        <FontAwesomeIcon icon={faCircleUser} />
+                        Sign in
                     </Link>
                 )}
             </div>
