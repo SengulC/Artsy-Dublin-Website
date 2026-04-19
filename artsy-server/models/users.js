@@ -222,6 +222,16 @@ class usersModel {
     }
   }
 
+  // K. update user bio
+  async updateUserBio(userId, bio) {
+    try {
+      await pool.query(`UPDATE users SET bio = ? WHERE userId = ?`, [bio, userId]);
+    } catch (err) {
+      console.error("updateUserBio Error: ", err);
+      throw err;
+    }
+  }
+
   // H. get user Journal
   async getUserJournal(userName, sort) {
     const sortOptions = {

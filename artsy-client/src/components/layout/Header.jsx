@@ -59,8 +59,9 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
 
     return (
         <header className="header">
-            <Link to="/" className="header_logo">
+            <Link to="/" className="header_logo header_logo--hoverable">
                 <img src={logo} alt="Artsy Dublin logo" />
+                <span className="header_logo__tooltip">← Back to Homepage</span>
             </Link>
 
             <button

@@ -56,10 +56,32 @@
     display: block;
     height: 114px;
     width: 114px;
+    position: relative;
 }
 
 .header_logo img {
     width: 100%;
+}
+
+.header_logo__tooltip {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-brown);
+    color: #FBF4EA;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.header_logo--hoverable:hover .header_logo__tooltip {
+    opacity: 1;
 }
 
 .header-inner {

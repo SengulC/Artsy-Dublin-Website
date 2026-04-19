@@ -46,9 +46,14 @@ function EventCard({ event, variant = "small" }) {
                                     method: "POST",
                                     credentials: "include",
                                 });
-                                if (res.ok) setSaved((prev) => !prev);
-                            } catch {
-                                // ignore
+                                if (res.ok) {
+                                    setSaved((prev) => !prev);
+                                } else {
+                                    const text = await res.text();
+                                    console.error("Save failed:", res.status, text);
+                                }
+                            } catch (err) {
+                                console.error("Save error:", err);
                             } finally {
                                 setSaving(false);
                             }
