@@ -14,20 +14,21 @@
 
 /* ── Main column (reviews) ── */
 
+.posts-page__layout > div:first-child {
+    min-width: 0;
+    width: 100%;
+}
+
 .posts-page__header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(90, 55, 19, 0.12);
     margin-bottom: 0;
 }
 
 .posts-page__title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: var(--fs-32);
     color: var(--color-brown);
 }
 
@@ -153,7 +154,72 @@
     color: var(--color-grey-500);
 }
 
-/* Responsive */
+/* ── Top row: header + toggle ── */
+.posts-page__top-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(90, 55, 19, 0.12);
+    margin-bottom: 20px;
+}
+
+.posts-page__top-row .posts-page__header {
+    flex: 1;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+/* ── Mode toggle ── */
+.posts-mode-bar {
+    display: inline-flex;
+    margin-bottom: 0;
+    border: 1.5px solid rgba(90, 55, 19, 0.28);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    background: rgba(90, 55, 19, 0.04);
+}
+
+.posts-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 999px;
+    border: none;
+    background: none;
+    color: var(--color-grey-500);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.posts-mode-btn:hover {
+    color: var(--color-brown);
+}
+
+.posts-mode-btn--active {
+    background: var(--color-brown);
+    color: #fff;
+}
+
+/* ── Masonry grid ── */
+.posts-masonry {
+    column-count: 4;
+    column-gap: 10px;
+    width: 100%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+    .posts-masonry { column-count: 3; }
+}
+
 @media (max-width: 860px) {
     .posts-page__layout {
         grid-template-columns: 1fr;
@@ -162,4 +228,10 @@
     .posts-sidebar {
         position: static;
     }
+
+    .posts-masonry { column-count: 2; }
+}
+
+@media (max-width: 500px) {
+    .posts-masonry { column-count: 1; }
 }
