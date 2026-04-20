@@ -5,7 +5,7 @@ import { auth } from "../firebase";
 import socket from "../utils/socket";
 
 export default function Me() {
-  const { firebaseUser, dbUser } = useAuth();
+  const { firebaseUser, dbUser, refreshAuth } = useAuth();
   const navigate = useNavigate();
 
   console.log(firebaseUser);
@@ -18,7 +18,8 @@ export default function Me() {
   const handleLogout = async () => {
     await fetch("/ad-auth/sessionLogout", { method: "POST", credentials: "include" });
     await signOut(auth);
-    socket.disconnect(); // drop the authenticated socket so the next user starts fresh
+    socket.disconnect();
+    await refreshAuth(); // clears stale dbUser from context
     navigate("/login");
   };
 
