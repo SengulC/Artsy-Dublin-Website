@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookmark as solidBookmark } from "@fortawesome/free-solid-svg-icons";
 import { faBookmark as regularBookmark } from "@fortawesome/free-regular-svg-icons";
 import { useAuth } from "../../context/AuthContext";
 
-function EventCard({ event, variant = "small" }) {
+function EventCard({ event, variant = "small", savedInit = false }) {
     const { dbUser } = useAuth();
     const navigate = useNavigate();
-    const [saved, setSaved] = useState(false);
+    const [saved, setSaved] = useState(savedInit);
     const [saving, setSaving] = useState(false);
+
+    //check saved events
+    useEffect(() => { setSaved(savedInit); }, [savedInit]);
 
     const formattedDate = event.startDateTime
         ? new Date(event.startDateTime.replace(" ", "T"))

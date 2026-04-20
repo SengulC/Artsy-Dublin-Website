@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useAuth } from "./context/AuthContext";
+import { checkSaves } from "./utils/postHelpers";
 import HomeIntroLoader from "./components/layout/HomeIntroLoader";
 
 import Login from './pages/Login'
@@ -38,6 +40,9 @@ function HomePage() {
   const [sortOrder, setSortOrder] = useState("Soonest");
   const [visibleCount, setVisibleCount] = useState(8);
   const [searchTerm, setSearchTerm] = useState("");
+  const [savedEventIds, setSavedEventIds] = useState([]);
+  const saveCheckedRef = useRef(false);
+  const { dbUser } = useAuth();
   const [showIntro, setShowIntro] = useState(() => {
     return sessionStorage.getItem("artsyIntroPlayed") !== "true";
   });
@@ -98,6 +103,12 @@ function HomePage() {
 
     loadEvents();
   }, []);
+
+  useEffect(() => {
+    if (!dbUser || loading || !events.length || saveCheckedRef.current) return;
+    saveCheckedRef.current = true;
+    checkSaves(events.map((e) => e.eventId)).then(setSavedEventIds);
+  }, [events, dbUser, loading]);
 
   function getEventTags(event) {
     if (event.eventTypeId === "tmdbFilm") return ["Film"];
@@ -236,7 +247,7 @@ function HomePage() {
 
           <MarqueeText />
 
-          <CalendarSection events={events} />
+          <CalendarSection events={events} savedEventIds={savedEventIds} />
           <Footer />
         </div>
 
@@ -267,7 +278,7 @@ function HomePage() {
 
           <div className="events_grid">
             {filteredEvents.slice(0, visibleCount).map((event) => (
-              <EventCard key={event.eventId} event={event} />
+              <EventCard key={event.eventId} event={event} savedInit={savedEventIds.includes(event.eventId)} />
             ))}
           </div>
 
@@ -283,7 +294,7 @@ function HomePage() {
           )}
 
           <MarqueeText />
-          <CalendarSection events={events} />
+          <CalendarSection events={events} savedEventIds={savedEventIds} />
           <Footer />
         </div>
       </div>
@@ -291,7 +302,7 @@ function HomePage() {
   );
 }
 
-function CalendarSection({ events }) {
+function CalendarSection({ events, savedEventIds = [] }) {
   function isSameDay(dateA, dateB) {
     return (
       dateA.getFullYear() === dateB.getFullYear() &&
@@ -397,6 +408,7 @@ function CalendarSection({ events }) {
                 <EventCard
                   key={event.eventId ?? event.title}
                   event={event}
+                  savedInit={savedEventIds.includes(event.eventId)}
                 />
               ))
             ) : (

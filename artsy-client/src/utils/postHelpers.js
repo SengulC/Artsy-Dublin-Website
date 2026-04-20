@@ -1,5 +1,19 @@
 // Shared helpers for post-related components
 
+//check if the visiblle events are saved: showing saved status
+export async function checkSaves(eventIds) {
+    if (!eventIds.length) return [];
+    try {
+        const res = await fetch(`/ad-posts/saves/check?eventIds=${eventIds.join(",")}`, {
+            credentials: "include",
+        });
+        if (!res.ok) return [];
+        return await res.json(); // array of saved eventIds
+    } catch {
+        return [];
+    }
+}
+
 //check if the visiblle posts are liked: showing liked status
 export async function checkLikes(postIds) {
     if (!postIds.length) return [];

@@ -7,6 +7,7 @@ import bgl from '../assets/images/bgl.png'
 import hostAvatar from '../assets/images/avatar.jpeg'
 import EventCard from "../components/events/EventCard";
 import SaveEventButton from '../components/ui/SaveEventButton'
+import { checkSaves } from "../utils/postHelpers";
 import LogEventButton from '../components/events/LogEventButton'
 import LoginPrompt from '../components/common/LoginPrompt'
 
@@ -83,6 +84,8 @@ function getRelatedEvents(currentEvent, allEvents) {
 function EventDetailPage() {
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
+    const [savedRelatedIds, setSavedRelatedIds] = useState([]);
+    const saveCheckedRef = useRef(false);
     const [attendId, setAttendId] = useState(null);
     const [loginPrompt, setLoginPrompt] = useState(null);
     const reviewCtaRef = useRef(null);
@@ -248,6 +251,17 @@ function EventDetailPage() {
 
         loadEvent();
     }, [id]);
+
+    //check saved events
+    useEffect(() => {
+        if (!event || !dbUser || saveCheckedRef.current) return;
+        saveCheckedRef.current = true;
+        const allIds = [event.eventId, ...relatedEvents.map((e) => e.eventId)];
+        checkSaves(allIds).then((savedIds) => {
+            setSaved(savedIds.includes(event.eventId));
+            setSavedRelatedIds(savedIds);
+        });
+    }, [event, dbUser, relatedEvents]);
 
     if (loading) {
         return <p className="status-message">Loading event...</p>;
@@ -507,7 +521,7 @@ function EventDetailPage() {
 
                     <div className="related-events__grid">
                         {relatedEvents.map((item) => (
-                            <EventCard key={item.eventId} event={item} />
+                            <EventCard key={item.eventId} event={item} savedInit={savedRelatedIds.includes(item.eventId)} />
                         ))}
                     </div>
                 </section>
