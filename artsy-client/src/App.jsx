@@ -12,6 +12,7 @@ import mockEvents from "./mock/events";
 import EventCard from "./components/events/EventCard";
 import EventDetailPage from './pages/EventDetailPage'
 import PostDetailPage from "./pages/PostDetailPage";
+import WritePostPage from "./pages/WritePostPage";
 import PostsPage from "./pages/PostsPage";
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
@@ -514,6 +515,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/me" element={<Me />} />
         <Route path="/posts/:id" element={<PostDetailPage />} />
+        <Route path="/events/:eventId/write-post/:eventAttendId" element={<WritePostPage />} />
         <Route path="/posts" element={<PostsPage />} />
         <Route path="/messages" element={<Inbox />} />
         <Route path="/messages/:conversationId" element={<Chat />} />

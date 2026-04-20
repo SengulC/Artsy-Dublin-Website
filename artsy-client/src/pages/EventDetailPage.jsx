@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import mockEvents from "../mock/events";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -8,6 +7,7 @@ import bgl from '../assets/images/bgl.png'
 import hostAvatar from '../assets/images/avatar.jpeg'
 import EventCard from "../components/events/EventCard";
 import SaveEventButton from '../components/ui/SaveEventButton'
+import LogEventButton from '../components/events/LogEventButton'
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -82,29 +82,22 @@ function getRelatedEvents(currentEvent, allEvents) {
 function EventDetailPage() {
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
+    const [attendId, setAttendId] = useState(null);
+    const reviewCtaRef = useRef(null);
+
+    function handleAttendChange(id, scroll = false) {
+        setAttendId(id);
+        if (id && scroll) {
+            setTimeout(() => reviewCtaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+        }
+    }
     const [event, setEvent] = useState(null);
     const [relatedEvents, setRelatedEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { id } = useParams();
     const { dbUser } = useAuth();
-    const handleLogAttendance = () => {
-        if (!user) {
-            navigate("/login");
-            return;
-        }
 
-        navigate(`/events/${eventId}/attendance`);
-    };
-
-    const handleWriteReview = () => {
-        if (!user) {
-            navigate("/login");
-            return;
-        }
-
-        navigate(`/events/${eventId}/review`);
-    };
     console.log("dbUser:", dbUser);
     // const API_BASE_URL =
     //     import.meta.env.VITE_API_URL || "http://localhost:3005";
@@ -329,6 +322,8 @@ function EventDetailPage() {
 
     return (
         <>
+            <div className="home-header-overlay"><Header /></div>
+
             <section className="event-hero__banner">
                 <img
                     src={event.posterUrl || "https://via.placeholder.com/1200x700?text=No+Image"}
@@ -379,13 +374,12 @@ function EventDetailPage() {
                             </button>
                         )}
 
-                        <button
-                            className="btn btn-attendance"
-                            onClick={handleLogAttendance}
-                        >
-                            Log Attendance
-                        </button>
-
+                        <LogEventButton
+                            eventId={event.eventId}
+                            dbUser={dbUser}
+                            eventDates={event.eventRepeats ?? []}
+                            onAttendChange={handleAttendChange}
+                        />
                         <SaveEventButton
                             saved={saved}
                             onToggle={handleToggleSave}
@@ -410,10 +404,6 @@ function EventDetailPage() {
                     </div>
                 </div>
             </section>
-
-            <div className="event-detail-page event-detail-page--hero">
-                <Header />
-            </div>
 
             <div className="container">
                 <button
@@ -447,19 +437,20 @@ function EventDetailPage() {
                                 : buildFallbackDescription(event)}
                         </p>
 
-                        <div className="event-body__review-cta">
-                            <h3 className="event-body__review-title">Share your experience</h3>
-                            <p className="event-body__review-text">
-                                Been to this event? Leave a review and tell others what it was like.
-                            </p>
-
-                            <button
-                                className="btn btn-review"
-                                onClick={handleWriteReview}
-                            >
-                                Write Review
-                            </button>
-                        </div>
+                        {attendId && (
+                            <div className="event-body__review-cta" ref={reviewCtaRef}>
+                                <h3 className="event-body__review-title">Share your experience</h3>
+                                <p className="event-body__review-text">
+                                    You've logged this event — ready to share your thoughts?
+                                </p>
+                                <a
+                                    className="btn btn-review"
+                                    href={`/events/${event.eventId}/write-post/${attendId}`}
+                                >
+                                    Write a Review
+                                </a>
+                            </div>
+                        )}
 
                         {/* <div className="event-host">
                             <div className="event-host__avatar">

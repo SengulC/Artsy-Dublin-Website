@@ -50,6 +50,14 @@
     /* border-bottom: 1px solid var(--color-brown); */
     /* background-color: #f7d9a8; */
     padding: 0px 150px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header--scrolled {
+    background: rgba(251, 244, 234, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 16px rgba(90, 55, 19, 0.08);
 }
 
 .header_logo {

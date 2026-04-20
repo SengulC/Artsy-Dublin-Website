@@ -17,6 +17,13 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
     const menuRef = useRef(null);
     const mobileNavRef = useRef(null);
@@ -58,7 +65,7 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
     };
 
     return (
-        <header className="header">
+        <header className={`header${scrolled ? " header--scrolled" : ""}`}>
             <Link to="/" className="header_logo header_logo--hoverable">
                 <img src={logo} alt="Artsy Dublin logo" />
                 <span className="header_logo__tooltip">← Back to Homepage</span>
