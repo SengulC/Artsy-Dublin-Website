@@ -1,39 +1,32 @@
 //this is the detail page for single post
 
 //import react functions
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { checkLikes, collectAllIds, applyLikedRecursive, updateCommentContent, removeComment } from "../utils/postHelpers";
 
 //import backend api
 //const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 //import icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faHeart as solidHeart, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 //import components
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import Lightbox from "../components/posts/Lightbox";
-import PostImageRow from "../components/posts/PostImageRow";
-import StarRating from "../components/posts/StarRating";
 import ReviewedEventCard from "../components/posts/ReviewedEventCard";
+import PostDetailContent from "../components/posts/PostDetailContent";
 import CommentSection from "../components/posts/CommentSection";
 import LoginPrompt from "../components/common/LoginPrompt";
 
 //import helpers
-import { formatDate } from "../utils/postHelpers";
 import { useAuth } from "../context/AuthContext";
-
-//import assets + style
-import bgl from "../assets/images/bgl.png";
-import defaultAvatar from "../assets/images/avatar.jpeg";
 import "../index.css";
 import "../styles/pages/post-detail.css";
 
 
-// ==================== functions handling
 function PostDetailPage() {
     const navigate = useNavigate();
     const { id } = useParams(); //get postId from para
@@ -47,6 +40,7 @@ function PostDetailPage() {
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [comments, setComments] = useState([]);
+    const [accentColor, setAccentColor] = useState(null);
 
     const [lightbox, setLightbox] = useState(null); // { images, index }
     const [loginPrompt, setLoginPrompt] = useState(null); // message string or null
@@ -55,7 +49,11 @@ function PostDetailPage() {
     const [postEditText, setPostEditText] = useState("");
     const [postDeleteConfirm, setPostDeleteConfirm] = useState(false);
 
+    const commentsRef = useRef(null);
+    const likeCheckedRef = useRef(false);
+
     const { dbUser } = useAuth(); //get login user info
+    
     function requireAuth(message, action) {
         if (!dbUser) { setLoginPrompt(message); return; }
         action();
@@ -102,16 +100,35 @@ function PostDetailPage() {
         fetchPost();
     }, [id]);
 
-    // ------- interaction handlers
+    // check likes for main post + every comment/reply once both are ready
+    useEffect(() => {
+        if (!post || !dbUser || likeCheckedRef.current) return;
+        likeCheckedRef.current = true;
+
+        checkLikes(collectAllIds(post, comments)).then((likedArr) => {
+            setLiked(likedArr.includes(post.postId));
+            setComments((prev) => applyLikedRecursive(prev, likedArr));
+        });
+    }, [post, dbUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+// ----------------------------------- interaction handlers
+    
     //open image in full screen
     function openLightbox(images, index) {
         setLightbox({ images, index });
     }
     function closeLightbox() { setLightbox(null); }
 
+
+//---------------------------- interaction with the main post
+    //handle like toggle for the main post
     async function handleLikeToggle() {
         try {
-            const res = await fetch(`/ad-posts/${id}/like`, { method: "POST" });
+            const res = await fetch(`/ad-posts/${id}/like`, {
+                method: "POST",
+                credentials: "include",
+            });
             if (!res.ok) return;
             const { liked: likeStatus, likeCount: newCount } = await res.json();
             setLiked(likeStatus);
@@ -121,7 +138,7 @@ function PostDetailPage() {
         }
     }
 
-    // edit/delete the main post
+    // edit the main post
     async function handlePostEdit() {
         try {
             const res = await fetch(`/ad-posts/${id}`, {
@@ -136,7 +153,7 @@ function PostDetailPage() {
             // keep form open on failure
         }
     }
-
+    // delete the main post
     async function handlePostDelete() {
         try {
             const res = await fetch(`/ad-posts/${id}`, { method: "DELETE" });
@@ -147,7 +164,71 @@ function PostDetailPage() {
         }
     }
 
-    // edit/delete a comment or reply
+    async function refreshComments() {
+        const res = await fetch(`/ad-posts/${id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setComments(data.comments ?? []);
+        setPost(prev => prev ? { ...prev, commentCount: data.commentCount } : prev);
+    }
+
+    //submit a comment to the main post
+    async function handleCommentSubmit({ content, images }) {
+        const form = new FormData();
+        form.append('content', content);
+        images.forEach(img => form.append('images', img));
+
+        const res = await fetch(`/ad-posts/comment/${id}`, {
+            method: 'POST',
+            credentials: 'include',
+            body: form
+        });
+
+        if (!res.ok) return;
+        await refreshComments();
+    }
+    
+// ----------------------------------interaction with a comment
+    // like a comment
+    async function handleLikeComment(commentPostId) {
+        function applyLike(list, liked, likeCount) {
+            return list.map((c) => {
+                if (c.postId === commentPostId) return { ...c, liked, likeCount };
+                if (c.replies?.length) return { ...c, replies: applyLike(c.replies, liked, likeCount) };
+                return c;
+            });
+        }
+
+        // Optimistic update
+        let prevLiked, prevCount;
+        setComments((prev) => {
+            function findComment(list) {
+                for (const c of list) {
+                    if (c.postId === commentPostId) return c;
+                    if (c.replies?.length) { const found = findComment(c.replies); if (found) return found; }
+                }
+            }
+            const target = findComment(prev);
+            prevLiked = target?.liked ?? false;
+            prevCount = target?.likeCount ?? 0;
+            const nextLiked = !prevLiked;
+            return applyLike(prev, nextLiked, prevCount + (nextLiked ? 1 : -1));
+        });
+
+        try {
+            const res = await fetch(`/ad-posts/${commentPostId}/like`, {
+                method: "POST",
+                credentials: "include",
+            });
+            if (!res.ok) throw new Error();
+            const { liked, likeCount } = await res.json();
+            setComments((prev) => applyLike(prev, liked, likeCount));
+        } catch {
+            setComments((prev) => applyLike(prev, prevLiked, prevCount));
+        }
+    }
+
+    // edit a comment
     async function handleEditComment(postId, content) {
         try {
             const res = await fetch(`/ad-posts/${postId}`, {
@@ -162,6 +243,7 @@ function PostDetailPage() {
         }
     }
 
+    // delete a comment
     async function handleDeleteComment(postId) {
         try {
             const res = await fetch(`/ad-posts/${postId}`, { method: "DELETE" });
@@ -173,59 +255,30 @@ function PostDetailPage() {
         }
     }
 
-    async function handleCommentSubmit({ content, images }) {
-        try {
-            const res = await fetch(`/ad-posts/${id}/comments`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, images }),
-            });
-
-            if (!res.ok) return;
-
-            const newComment = await res.json();
-
-            setComments((prev) => [...prev, newComment]);
-            setPost((prev) =>
-                prev ? { ...prev, commentCount: (prev.commentCount ?? 0) + 1 } : prev
-            );
-        } catch {}
-    }
-
+    // reply to a comment
     async function handleAddReply(parentId, { content, images }) {
         try {
-            const res = await fetch(`/ad-posts/${id}/comments/${parentId}`, {
+            const form = new FormData();
+            form.append('content', content);
+            images.forEach(img => form.append('images', img));
+
+            const res = await fetch(`/ad-posts/comment/${parentId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, images }),
+                credentials: "include",
+                body: form,
             });
 
             if (!res.ok) return;
-
-            const newReply = await res.json();
-
-            function insertReply(comments) {
-                return comments.map((c) => {
-                    if (c.postId === parentId) {
-                        return { ...c, replies: [...(c.replies || []), newReply] };
-                    }
-                    if (c.replies?.length) {
-                        return { ...c, replies: insertReply(c.replies) };
-                    }
-                    return c;
-                });
-            }
-
-            setComments((prev) => insertReply(prev));
-        } catch {}
+            await refreshComments();
+        } catch { }
     }
-    
+
 
     // ========================== render page
     if (loading) {
         return (
             <>
-                <Header />
+                <div className="home-header-overlay"><Header /></div>
                 <div className="container"><p style={{ padding: "80px 0" }}>Loading…</p></div>
                 <Footer />
             </>
@@ -235,7 +288,7 @@ function PostDetailPage() {
     if (error || !post) {
         return (
             <>
-                <Header />
+                <div className="home-header-overlay"><Header /></div>
                 <div className="container">
                     <p style={{ padding: "80px 0", color: "rgba(43,43,43,0.55)" }}>
                         {error ?? "Post not found."}
@@ -246,125 +299,62 @@ function PostDetailPage() {
         );
     }
 
-    const displayImages = post.images?.length ? post.images : [];
     const isPostOwner = dbUser && post.userId === dbUser.userId;
 
     return (
         <>
-            <Header />
+            <div className="home-header-overlay"><Header /></div>
 
-            <div className="container">
-                <button className="btn-back" onClick={() => navigate("/posts")}>
+            <div className="container" style={{ paddingTop: "120px" }}>
+                <button className="btn-back btn-12" onClick={() => navigate("/posts")}>
                     <FontAwesomeIcon icon={faArrowLeft} className="faArrowLeft" />
                     <span>All Posts</span>
                 </button>
 
-                <div className="bgl"><img src={bgl} alt="" /></div>
+                <div className="section-bg-text">Artsy<br></br>Dublin</div>
+
 
                 {/* ---- Main two-column layout ---- */}
                 <main className="post-detail">
 
-                    {/* Left: event card */}
-                    <ReviewedEventCard event={event} />
+                    {/* Left: event spotlight card */}
+                    <ReviewedEventCard
+                        event={event}
+                        onColorExtracted={setAccentColor}
+                    />
 
-                    {/* Right: review content */}
-                    <div className="post-detail__content">
-
-                        <div className="post-author">
-                            <img
-                                src={post.avatarUrl || defaultAvatar}
-                                alt={post.username}
-                                className="post-author_avatar"
-                            />
-                            <span className="post-author_name">{post.username ?? "User"}</span>
-                        </div>
-
-                        <span className="post-detail__date">{formatDate(post.createdAt)}</span>
-
-                        <StarRating rating={post.rating} />
-
-                        {postEditing ? (
-                            <div className="post-edit-form">
-                                <textarea
-                                    className="comment-form__input"
-                                    rows={4}
-                                    value={postEditText}
-                                    onChange={(e) => setPostEditText(e.target.value)}
-                                    autoFocus
-                                />
-                                <div className="comment-form__btn-row" style={{ marginTop: "8px" }}>
-                                    <button
-                                        className="btn btn-outline btn--sm"
-                                        onClick={() => setPostEditing(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="btn btn-primary btn--sm"
-                                        onClick={handlePostEdit}
-                                        disabled={!postEditText.trim()}
-                                    >
-                                        Save
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="post-detail__description">{post.content}</p>
-                        )}
-
-                        <PostImageRow
-                            images={displayImages}
-                            onOpenLightbox={(i) => openLightbox(displayImages, i)}
-                        />
-
-                        <div className="post-actions">
-                            <button
-                                className={`btn ${liked ? "btn-primary" : "btn-outline"}`}
-                                onClick={() => requireAuth("Log in to like this post", handleLikeToggle)}
-                            >
-                                <FontAwesomeIcon icon={liked ? solidHeart : regularHeart} />{" "}
-                                {likeCount} {liked ? "Liked" : "Like"}
-                            </button>
-
-                            {isPostOwner && !postEditing && !postDeleteConfirm && (
-                                <>
-                                    <button
-                                        className="btn btn-outline"
-                                        onClick={() => { setPostEditText(post.content); setPostEditing(true); }}
-                                    >
-                                        <FontAwesomeIcon icon={faPen} /> Edit
-                                    </button>
-                                    <button
-                                        className="btn btn-outline btn--danger"
-                                        onClick={() => setPostDeleteConfirm(true)}
-                                    >
-                                        <FontAwesomeIcon icon={faTrash} /> Delete
-                                    </button>
-                                </>
-                            )}
-
-                            {isPostOwner && postDeleteConfirm && (
-                                <span className="post-delete-confirm">
-                                    Delete this post?{" "}
-                                    <button className="btn btn-outline btn--danger btn--sm" onClick={handlePostDelete}>
-                                        Yes, delete
-                                    </button>
-                                    <button className="btn btn-outline btn--sm" onClick={() => setPostDeleteConfirm(false)}>
-                                        Cancel
-                                    </button>
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    {/* Right: review content panel */}
+                    <PostDetailContent
+                        post={post}
+                        liked={liked}
+                        likeCount={likeCount}
+                        accentColor={accentColor}
+                        postEditing={postEditing}
+                        postEditText={postEditText}
+                        postDeleteConfirm={postDeleteConfirm}
+                        isPostOwner={isPostOwner}
+                        onLikeToggle={() => requireAuth("Log in to like this post", handleLikeToggle)}
+                        onEditStart={() => { setPostEditText(post.content); setPostEditing(true); }}
+                        onEditChange={setPostEditText}
+                        onEditSave={handlePostEdit}
+                        onEditCancel={() => setPostEditing(false)}
+                        onDeleteRequest={() => setPostDeleteConfirm(true)}
+                        onDeleteConfirm={handlePostDelete}
+                        onDeleteCancel={() => setPostDeleteConfirm(false)}
+                        onOpenLightbox={openLightbox}
+                        onScrollToComments={() => commentsRef.current?.scrollIntoView({ behavior: "smooth" })}
+                    />
                 </main>
 
                 {/*  Comments section  */}
+                <div ref={commentsRef} />
                 <CommentSection
                     comments={comments}
                     commentCount={post.commentCount}
                     currentUserId={dbUser?.userId}
                     onSubmit={handleCommentSubmit}
                     onAddReply={handleAddReply}
+                    onLikeComment={handleLikeComment}
                     onEdit={handleEditComment}
                     onDelete={handleDeleteComment}
                     onOpenLightbox={openLightbox}
@@ -389,23 +379,5 @@ function PostDetailPage() {
         </>
     );
 }
-
-// ---- helpers to update nested comment state
-function updateCommentContent(comments, postId, content) {
-    return comments.map((c) => {
-        if (c.postId === postId) return { ...c, content };
-        if (c.replies?.length) return { ...c, replies: updateCommentContent(c.replies, postId, content) };
-        return c;
-    });
-}
-
-function removeComment(comments, postId) {
-    return comments
-        .filter((c) => c.postId !== postId)
-        .map((c) => c.replies?.length ? { ...c, replies: removeComment(c.replies, postId) } : c);
-}
-
-// handleCommentSubmit and handleAddReply defined at module level to avoid re-creation
-// (they need setComments/setPost/id/API_BASE_URL — kept inside component above)
 
 export default PostDetailPage;

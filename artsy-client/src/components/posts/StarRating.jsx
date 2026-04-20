@@ -3,7 +3,7 @@ import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
 function StarRating({ rating }) {
-    if (!rating) return null;
+    if (!rating) return <span className="event-rating--none">Not rated</span>;
     return (
         <div className="event-rating">
             {[1, 2, 3, 4, 5].map((n) => (

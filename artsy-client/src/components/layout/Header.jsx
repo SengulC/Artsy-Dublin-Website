@@ -1,66 +1,119 @@
 import { useState, useRef, useEffect } from "react";
-import logo from '../../assets/images/logo.png'
-import '../../index.css'
+import logo from "../../assets/images/logo.png";
+import "../../index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faCircleUser } from "@fortawesome/free-solid-svg-icons";
+import {
+    faMagnifyingGlass,
+    faBars,
+    faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
+import AnimatedTextLink from "../ui/AnimatedTextLink";
 import { useAuth } from "../../context/AuthContext";
 
-function Header() {
+function Header({ inputValue, setInputValue, onSearch }) {
     const { dbUser, refreshAuth } = useAuth();
     const navigate = useNavigate();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef(null);
 
-    // Close dropdown when clicking outside
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+    const menuRef = useRef(null);
+    const mobileNavRef = useRef(null);
+
     useEffect(() => {
         function handleClickOutside(e) {
             if (menuRef.current && !menuRef.current.contains(e.target)) {
                 setMenuOpen(false);
             }
+
+            if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
+                const burgerBtn = document.querySelector(".header__burger");
+                if (burgerBtn && !burgerBtn.contains(e.target)) {
+                    setMobileNavOpen(false);
+                }
+            }
         }
+
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleLogout = async () => {
         setMenuOpen(false);
+        setMobileNavOpen(false);
+
         try {
-            await fetch("/api/sessionLogout", { method: "POST", credentials: "include" });
+            await fetch("/ad-auth/sessionLogout", { method: "POST", credentials: "include" });
         } catch {
-            // ignore network errors, still clear local state
+            // ignore
         }
+
         await refreshAuth();
         navigate("/");
     };
 
+    const closeMobileMenu = () => {
+        setMobileNavOpen(false);
+    };
+
     return (
-        <header className="header">
-            <Link to="/" className="header_logo">
+        <header className={`header${scrolled ? " header--scrolled" : ""}`}>
+            <Link to="/" className="header_logo header_logo--hoverable">
                 <img src={logo} alt="Artsy Dublin logo" />
+                <span className="header_logo__tooltip">← Back to Homepage</span>
             </Link>
 
-            <div className="header-inner">
+            <button
+                type="button"
+                className="header__burger"
+                aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileNavOpen}
+                onClick={() => setMobileNavOpen((prev) => !prev)}
+            >
+                <FontAwesomeIcon icon={mobileNavOpen ? faXmark : faBars} />
+            </button>
+
+            <div
+                className={`header-inner ${mobileNavOpen ? "is-open" : ""}`}
+                ref={mobileNavRef}
+            >
                 <div className="search-bar">
                     <input
                         type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                onSearch();
+                            }
+                        }}
                         className="search-bar__input"
-                        placeholder="Search events, artists, categories..."
+                        placeholder="Search events..."
                     />
-                    <button className="search-bar__button" aria-label="Search">
+                    <button type="button" onClick={onSearch} className="search-bar__button" aria-label="Search">
                         <FontAwesomeIcon icon={faMagnifyingGlass} />
                     </button>
                 </div>
 
                 <nav className="header__nav">
-                    <Link to="/events">ALL EVENTS</Link>
-                    <Link to="/posts">COMMUNITY</Link>
-                    <Link to="/messages">MESSAGE</Link>
+                    <AnimatedTextLink to="/events" text="ALL EVENTS" />
+                    <AnimatedTextLink to="/posts" text="COMMUNITY" />
+                    <AnimatedTextLink to="/messages" text="MESSAGE" />
+                    <AnimatedTextLink to="/team" text="TEAM" />
                 </nav>
 
-                {dbUser ? (
+                {dbUser?.userName ? (
                     <div className="header__user-wrap" ref={menuRef}>
                         <button
+                            type="button"
                             className="header__user-btn"
                             onClick={() => setMenuOpen((o) => !o)}
                             title={dbUser.userName}
@@ -83,11 +136,15 @@ function Header() {
                                 <Link
                                     to="/profile"
                                     className="header__dropdown-item"
-                                    onClick={() => setMenuOpen(false)}
+                                    onClick={() => {
+                                        setMenuOpen(false);
+                                        setMobileNavOpen(false);
+                                    }}
                                 >
                                     My Profile
                                 </Link>
                                 <button
+                                    type="button"
                                     className="header__dropdown-item header__dropdown-item--logout"
                                     onClick={handleLogout}
                                 >
@@ -97,8 +154,12 @@ function Header() {
                         )}
                     </div>
                 ) : (
-                    <Link to="/login" className="header__user-btn" title="Login">
-                        <FontAwesomeIcon icon={faCircleUser} />
+                    <Link
+                        to="/login"
+                        className="header__signin-btn"
+                        onClick={closeMobileMenu}
+                    >
+                        Sign in
                     </Link>
                 )}
             </div>

@@ -1,11 +1,18 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookmark as solidBookmark } from "@fortawesome/free-solid-svg-icons";
 import { faBookmark as regularBookmark } from "@fortawesome/free-regular-svg-icons";
+import { useAuth } from "../../context/AuthContext";
 
-function EventCard({ event, variant = "small" }) {
-    const [saved, setSaved] = useState(false);
+function EventCard({ event, variant = "small", savedInit = false }) {
+    const { dbUser } = useAuth();
+    const navigate = useNavigate();
+    const [saved, setSaved] = useState(savedInit);
+    const [saving, setSaving] = useState(false);
+
+    //check saved events
+    useEffect(() => { setSaved(savedInit); }, [savedInit]);
 
     const formattedDate = event.startDateTime
         ? new Date(event.startDateTime.replace(" ", "T"))
@@ -32,9 +39,27 @@ function EventCard({ event, variant = "small" }) {
 
                     <button
                         className={`event-card__save-btn ${saved ? "is-saved" : ""}`}
-                        onClick={(e) => {
+                        disabled={saving}
+                        onClick={async (e) => {
                             e.preventDefault();
-                            setSaved(!saved);
+                            if (!dbUser?.userName) { navigate("/login"); return; }
+                            setSaving(true);
+                            try {
+                                const res = await fetch(`/ad-posts/${event.eventId}/save`, {
+                                    method: "POST",
+                                    credentials: "include",
+                                });
+                                if (res.ok) {
+                                    setSaved((prev) => !prev);
+                                } else {
+                                    const text = await res.text();
+                                    console.error("Save failed:", res.status, text);
+                                }
+                            } catch (err) {
+                                console.error("Save error:", err);
+                            } finally {
+                                setSaving(false);
+                            }
                         }}
                     >
                         <FontAwesomeIcon icon={saved ? solidBookmark : regularBookmark} />

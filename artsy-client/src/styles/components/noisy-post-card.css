@@ -1,0 +1,209 @@
+/* ── Noisy Post Card ─────────────────────────────────────────── */
+
+.ncard {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+/* Height tiers */
+.ncard--small  { min-height: 250px; }
+.ncard--medium { min-height: 380px; }
+.ncard--large  { min-height: 480px; }
+
+.ncard__link {
+    display: flex;
+    flex-direction: column;
+    min-height: inherit;
+    text-decoration: none;
+    position: relative;
+}
+
+/* ══ COLOR CARD LAYOUT ══════════════════════════════════════════════════════ */
+
+.ncard--color .ncard__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    min-height: inherit;
+    transition: opacity 0.25s ease;
+}
+
+.ncard--color .ncard__title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 1.05;
+    margin: 0 0 10px;
+    color: var(--ncard-text);
+}
+
+/* title font-size set dynamically in JS based on title length */
+
+.ncard--color .ncard__excerpt {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ncard-text);
+    opacity: 0.65;
+    overflow-wrap: break-word;
+    margin: 0;
+    flex: 1;
+}
+
+.ncard--color .ncard__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.ncard--color .ncard__rating {
+    display: flex;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--ncard-text);
+    opacity: 0.8;
+}
+
+/* ══ POSTER CARD LAYOUT ═════════════════════════════════════════════════════ */
+
+.ncard--poster .ncard__body {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 48px 20px 18px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.75) 55%);
+    transition: opacity 0.25s ease;
+    z-index: 1;
+}
+
+.ncard--poster .ncard__title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 1.05;
+    color: #fff;
+    margin: 0 0 8px;
+}
+
+.ncard--poster.ncard--large .ncard__title { font-size: 28px; }
+.ncard--poster.ncard--small .ncard__title { font-size: 17px; }
+
+.ncard--poster .ncard__excerpt {
+    display: none;
+}
+
+.ncard--poster .ncard__footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ncard--poster .ncard__rating {
+    display: flex;
+    gap: 3px;
+    font-size: 11px;
+    color: #ffd700;
+}
+
+/* ══ HOVER OVERLAY ══════════════════════════════════════════════════════════ */
+
+.ncard__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 2;
+}
+
+.ncard:hover .ncard__overlay { opacity: 1; }
+.ncard:hover .ncard__body    { opacity: 0; }
+
+.ncard__overlay-inner {
+    padding: 24px;
+    text-align: center;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.ncard__ov-user {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.ncard__ov-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 1.05;
+    margin: 0;
+}
+
+.ncard--large .ncard__ov-title  { font-size: 28px; }
+.ncard--small .ncard__ov-title  { font-size: 18px; }
+
+.ncard__ov-venue,
+.ncard__ov-date {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.ncard__ov-stars {
+    display: flex;
+    gap: 4px;
+    color: #ffd700;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+.ncard__ov-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    padding: 7px 16px;
+    border-radius: 999px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ncard:hover .ncard__ov-cta {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.7);
+}

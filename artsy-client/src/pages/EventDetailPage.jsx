@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import mockEvents from "../mock/events";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import bgl from '../assets/images/bgl.png'
 import hostAvatar from '../assets/images/avatar.jpeg'
 import EventCard from "../components/events/EventCard";
+import SaveEventButton from '../components/ui/SaveEventButton'
+import { checkSaves } from "../utils/postHelpers";
+import LogEventButton from '../components/events/LogEventButton'
+import LoginPrompt from '../components/common/LoginPrompt'
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowLeft,
@@ -19,27 +23,169 @@ import { faBookmark as regularBookmark } from "@fortawesome/free-regular-svg-ico
 
 import '../index.css'
 import '../styles/pages/event-detail.css'
+import { useAuth } from "../context/AuthContext";
+function getEventTypeIdFromName(eventTypeName) {
+    if (eventTypeName === "Music") return "KZFzniwnSyZfZ7v7nJ";
+    if (eventTypeName === "Arts & Theatre") return "KZFzniwnSyZfZ7v7na";
+    if (eventTypeName === "Film" || eventTypeName === "Film Showing") return "tmdbFilm";
+    return "";
+}
 
+function getFallbackTags(item) {
+    if (!item?.description) return [];
 
+    if (item.eventTypeId === "tmdbFilm") return ["Film"];
+
+    return item.description
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+}
+
+function getRelatedEvents(currentEvent, allEvents) {
+    if (!currentEvent) return [];
+
+    const currentGenres =
+        currentEvent.genres && currentEvent.genres.length > 0
+            ? currentEvent.genres
+            : getFallbackTags(currentEvent);
+
+    const currentTypeId =
+        currentEvent.eventTypeId ||
+        getEventTypeIdFromName(currentEvent.eventTypeName);
+
+    return allEvents
+        .filter((item) => item.eventId !== currentEvent.eventId)
+        .filter((item) => {
+            if (!currentTypeId) return true;
+            return item.eventTypeId === currentTypeId;
+        })
+        .map((item) => {
+            const itemGenres =
+                item.genres && item.genres.length > 0
+                    ? item.genres
+                    : getFallbackTags(item);
+
+            const sharedGenres = itemGenres.filter((genre) =>
+                currentGenres.includes(genre)
+            );
+
+            let score = 0;
+            score += 2;
+            score += sharedGenres.length * 3;
+            if (item.startDateTime) score += 1;
+
+            return { ...item, _score: score };
+        })
+        .sort((a, b) => b._score - a._score)
+        .slice(0, 6);
+}
 
 function EventDetailPage() {
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
+    const [savedRelatedIds, setSavedRelatedIds] = useState([]);
+    const [attendId, setAttendId] = useState(null);
+    const [loginPrompt, setLoginPrompt] = useState(null);
+    const reviewCtaRef = useRef(null);
+
+    function handleAttendChange(id, scroll = false) {
+        setAttendId(id);
+        if (id && scroll) {
+            setTimeout(() => reviewCtaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+        }
+    }
     const [event, setEvent] = useState(null);
     const [relatedEvents, setRelatedEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { id } = useParams();
+    const { dbUser } = useAuth();
 
+    console.log("dbUser:", dbUser);
     // const API_BASE_URL =
     //     import.meta.env.VITE_API_URL || "http://localhost:3005";
+    function getBreadcrumbText(event) {
+        const parts = ["All Events"];
 
+        if (event?.eventTypeName) {
+            parts.push(event.eventTypeName);
+        }
+
+        if (event?.genres && event.genres.length > 0) {
+            parts.push(event.genres[0]);
+        }
+
+        return parts.join(" / ");
+    }
+
+    async function handleToggleSave() {
+        if (!dbUser?.userId) {
+            navigate("/login");
+            return;
+        }
+
+        if (!event?.eventId) return;
+
+        try {
+            const res = await fetch(`/ad-posts/${event.eventId}/save`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const data = await res.json();
+            console.log("save status:", res.status);
+            console.log("save response:", data);
+
+            if (!res.ok) {
+                throw new Error(data?.error || "Save toggle failed");
+            }
+
+            setSaved(!!data.saved);
+
+            const eventRes = await fetch(`/ad-events/event/${event.eventId}`);
+            const eventData = await eventRes.json();
+
+            setEvent((prev) => ({
+                ...prev,
+                saveCount: eventData.saveCount ?? prev?.saveCount ?? 0,
+            }));
+        } catch (err) {
+            console.error("Save event failed:", err);
+        }
+    }
     useEffect(() => {
         async function loadEvent() {
             try {
                 setLoading(true);
                 setError(null);
-
+                const eventsRes = await fetch("/ad-events");
+                const allLiveEvents = await eventsRes.json();
+                const normalizedAllEvents = allLiveEvents.map((event, index) => ({
+                    eventId: event.eventId ?? index,
+                    title: event.title ?? "",
+                    url: event.url ?? "",
+                    description: event.description ?? "",
+                    venue: event.venue ?? "",
+                    startDateTime: event.startDateTime ?? "",
+                    posterUrl: event.posterUrl ?? event.posterURL ?? "",
+                    eventTypeId: event.eventTypeId ?? "",
+                    eventTypeName:
+                        event.eventTypeName ??
+                        (event.eventTypeId === "tmdbFilm"
+                            ? "Film"
+                            : event.eventTypeId === "KZFzniwnSyZfZ7v7nJ"
+                                ? "Music"
+                                : event.eventTypeId === "KZFzniwnSyZfZ7v7na"
+                                    ? "Arts & Theatre"
+                                    : ""),
+                    genres: event.genres ?? [],
+                    saveCount: event.saveCount ?? 0,
+                    attendCount: event.attendCount ?? 0,
+                }));
                 const res = await fetch(`/ad-events/event/${id}`);
                 console.log("detail response status:", res.status);
 
@@ -58,21 +204,22 @@ function EventDetailPage() {
                     venue: data.venue ?? "",
                     startDateTime: data.startDateTime ?? "",
                     posterUrl: data.posterUrl ?? data.posterURL ?? "",
-                    eventTypeId: data.eventTypeId ?? "",
+                    eventTypeId:
+                        data.eventTypeId ??
+                        getEventTypeIdFromName(data.eventTypeName) ??
+                        "",
                     eventTypeName: data.eventTypeName ?? "",
                     genres: data.genres ?? [],
+                    saveCount: data.saveCount ?? 0,
                     eventRepeats: data.eventRepeats ?? [],
                     attendance: data.attendance ?? null,
                 };
 
                 setEvent(normalizedEvent);
 
-                const related = mockEvents
-                    .filter((item) => item.eventId !== normalizedEvent.eventId)
-                    .filter((item) => item.eventTypeId === normalizedEvent.eventTypeId)
-                    .slice(0, 6);
-
+                const related = getRelatedEvents(normalizedEvent, normalizedAllEvents);
                 setRelatedEvents(related);
+
             } catch (err) {
                 console.error("Error loading event:", err);
 
@@ -99,7 +246,24 @@ function EventDetailPage() {
         }
 
         loadEvent();
-    }, [id, "TEST"]);
+    }, [id]);
+
+    //check saved events
+    useEffect(() => {
+        if (!event?.eventId || !dbUser?.userId) return;
+
+        const allIds = [event.eventId, ...relatedEvents.map((e) => e.eventId)];
+        console.log("allIds:", allIds);
+
+        checkSaves(allIds).then((savedIds) => {
+            console.log("savedIds:", savedIds, "current eventId:", event.eventId);
+
+            setSaved(savedIds.includes(event.eventId));
+            setSavedRelatedIds(savedIds);
+        }).catch((err) => {
+            console.error("Failed to check saves:", err);
+        });
+    }, [event?.eventId, dbUser?.userId, relatedEvents]);
 
     if (loading) {
         return <p className="status-message">Loading event...</p>;
@@ -121,6 +285,43 @@ function EventDetailPage() {
             : [];
     }
 
+    function isMeaningfulDescription(description) {
+        if (!description) return false;
+
+        const text = description.trim();
+        if (text.length < 40) return false;
+
+        const words = text.split(/\s+/);
+        if (words.length < 6) return false;
+
+        return true;
+    }
+
+    function buildFallbackDescription(event) {
+        const parts = [];
+
+        if (event?.eventTypeName) {
+            parts.push(`This event is part of ${event.eventTypeName}.`);
+        }
+
+        if (event?.genres?.length > 0) {
+            parts.push(`It is associated with ${event.genres.join(", ")}.`);
+        }
+
+        if (event?.venue) {
+            parts.push(`It will take place at ${event.venue}.`);
+        }
+
+        if (event?.startDateTime) {
+            parts.push(`Check the listed event time for attendance details.`);
+        }
+
+        if (event?.url) {
+            parts.push(`Use the event link for tickets or more information.`);
+        }
+
+        return parts.join(" ");
+    }
 
     const formattedDate = event.startDateTime
         ? new Date(event.startDateTime)
@@ -135,110 +336,140 @@ function EventDetailPage() {
             .replace(",", "")
         : "Date to be announced";
 
+
+
     return (
         <>
-            <Header />
+            <div className="home-header-overlay"><Header /></div>
+
+            <section className="event-hero__banner">
+                <img
+                    src={event.posterUrl || "https://via.placeholder.com/1200x700?text=No+Image"}
+                    alt={event.title}
+                    className="event-hero__image"
+                />
+                <div className="event-hero__gloss"></div>
+                <div className="event-hero__overlay"></div>
+
+                <div className="event-hero__content">
+                    <div className="event-hero__topline">
+                        {event.eventTypeName && (
+                            <p className="event-hero__type">{event.eventTypeName}</p>
+                        )}
+
+                        {event.genres && event.genres.length > 0 && (
+                            <div className="event-hero__genres">
+                                {event.genres.map((genre) => (
+                                    <span key={genre} className="event-hero__genre-tag">
+                                        {genre}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <h1 className="event-hero__title">{event.title}</h1>
+
+                    <div className="event-hero__stats">
+                        <span>{event.saveCount ?? 0} saved</span>
+                        <span>{event.attendCount ?? 0} attending</span>
+                    </div>
+
+
+                    <div className="event-hero__buttons">
+                        {event.url ? (
+                            <a
+                                href={event.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-primary btn-12"
+                            >
+                                <span>Get Tickets</span>
+                            </a>
+                        ) : (
+                            <button className="btn btn-primary btn-12" disabled>
+                                <span>Tickets Unavailable</span>
+                            </button>
+                        )}
+
+                        <LogEventButton
+                            eventId={event.eventId}
+                            dbUser={dbUser}
+                            eventDates={event.eventRepeats ?? []}
+                            onAttendChange={handleAttendChange}
+                            onLoginRequired={(msg) => setLoginPrompt(msg)}
+                        />
+                        <SaveEventButton
+                            saved={saved}
+                            onToggle={handleToggleSave}
+                        />
+                    </div>
+                </div>
+
+                <div className="event-hero__info-card">
+                    <div className="event-hero__info-item">
+                        <span className="event-hero__info-label">Venue</span>
+                        <p>{event.venue || "Venue TBA"}</p>
+                    </div>
+
+                    <div className="event-hero__info-item">
+                        <span className="event-hero__info-label">Category</span>
+                        <p>{event.eventTypeName || "Event"}</p>
+                    </div>
+
+                    <div className="event-hero__info-item">
+                        <span className="event-hero__info-label">Date</span>
+                        <p>{formattedDate}</p>
+                    </div>
+                </div>
+            </section>
 
             <div className="container">
                 <button
-                    className="btn-back"
+                    type="button"
+                    className="btn-back btn-12"
                     onClick={() => navigate(-1)}
                 >
                     <FontAwesomeIcon icon={faArrowLeft} className="faArrowLeft" />
-                    <span>All EVENTS</span>
+                    <span>{getBreadcrumbText(event)}</span>
                 </button>
-                <div className="bgl">
+                {/* <div className="bgl">
                     <img src={bgl} alt="" />
-                </div>
+                </div> */}
 
                 <main className="event-hero">
                     <aside className="event-hero__rail">
                         <span className="event-hero__rail-text">WELCOME TO EVENT</span>
                     </aside>
 
-                    <section className="event-hero__banner">
-                        <img
-                            src={event.posterUrl || "https://via.placeholder.com/1200x700?text=No+Image"}
-                            alt={event.title}
-                            className="event-hero__image"
-                        />
 
-                        <div className="event-hero__overlay"></div>
-
-                        <div className="event-hero__content">
-                            <div className="event-hero__topline">
-                                {event.eventTypeName && (
-                                    <p className="event-hero__type">{event.eventTypeName}</p>
-                                )}
-
-                                {event.genres && event.genres.length > 0 && (
-                                    <div className="event-hero__genres">
-                                        {event.genres.map((genre) => (
-                                            <span key={genre} className="event-hero__genre-tag">
-                                                {genre}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <h1 className="event-hero__title">{event.title}</h1>
-
-                            <p className="event-hero__date">
-                                {formattedDate}
-                            </p>
-
-                            <div className="event-hero__buttons">
-                                {event.url ? (
-                                    <a
-                                        href={event.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-primary"
-                                    >
-                                        Get Tickets
-                                    </a>
-                                ) : (
-                                    <button className="btn btn-primary" disabled>
-                                        Tickets Unavailable
-                                    </button>
-                                )}
-
-                                <button
-                                    className={`btn-secondary btn-save-detail ${saved ? "is-saved" : ""}`}
-                                    onClick={() => setSaved(!saved)}
-                                >
-                                    <FontAwesomeIcon icon={saved ? solidBookmark : regularBookmark} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="event-hero__info-card">
-                            <div className="event-hero__info-item">
-                                <span className="event-hero__info-label">Venue</span>
-                                <p>{event.venue || "Venue TBA"}</p>
-                            </div>
-
-                            <div className="event-hero__info-item">
-                                <span className="event-hero__info-label">Category</span>
-                                <p>{event.eventTypeName || "Event"}</p>
-                            </div>
-
-                            <div className="event-hero__info-item">
-                                <span className="event-hero__info-label">Date</span>
-                                <p>{formattedDate}</p>
-                            </div>
-                        </div>
-                    </section>
                 </main>
 
                 <section className="event-body">
                     <div className="event-body__main">
                         <p className="event-body__eyebrow">WELCOME</p>
                         <h2 className="event-body__title">About this event</h2>
+
                         <p className="event-body__description">
-                            {event.description || "More event details coming soon."}
+                            {isMeaningfulDescription(event.description)
+                                ? event.description
+                                : buildFallbackDescription(event)}
                         </p>
+
+                        {attendId && (
+                            <div className="event-body__review-cta" ref={reviewCtaRef}>
+                                <h3 className="event-body__review-title">Share your experience</h3>
+                                <p className="event-body__review-text">
+                                    You've logged this event — ready to share your thoughts?
+                                </p>
+                                <a
+                                    className="btn btn-review btn-12"
+                                    href={`/events/${event.eventId}/write-post/${attendId}`}
+                                >
+                                    <span>Write a Review</span>
+                                </a>
+                            </div>
+                        )}
 
                         {/* <div className="event-host">
                             <div className="event-host__avatar">
@@ -292,13 +523,17 @@ function EventDetailPage() {
 
                     <div className="related-events__grid">
                         {relatedEvents.map((item) => (
-                            <EventCard key={item.eventId} event={item} />
+                            <EventCard key={item.eventId} event={item} savedInit={savedRelatedIds.includes(item.eventId)} />
                         ))}
                     </div>
                 </section>
             </div>
 
             <Footer />
+
+            {loginPrompt && (
+                <LoginPrompt message={loginPrompt} onClose={() => setLoginPrompt(null)} />
+            )}
         </>
     );
 }
