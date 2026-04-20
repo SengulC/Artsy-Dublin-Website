@@ -52,12 +52,8 @@ export default function ProfilePage() {
   const navigate = useNavigate();
 
   const [profile,        setProfile]        = useState(null);
-  const [attendedEvents, setAttendedEvents] = useState([]);//fake下面是fake的
-  const [savedEvents,    setSavedEvents]    = useState([
-    { eventId: 9001, title: "Mock Jazz Night", posterUrl: "https://picsum.photos/seed/jazz/400/300", startDateTime: "2025-06-10 20:00:00", venue: "The Button Factory" },
-    { eventId: 9002, title: "Mock Art Exhibition", posterUrl: "https://picsum.photos/seed/art/400/300", startDateTime: "2025-06-15 18:00:00", venue: "Irish Museum of Modern Art" },
-    { eventId: 9003, title: "Mock Comedy Show", posterUrl: "https://picsum.photos/seed/comedy/400/300", startDateTime: "2025-06-20 21:00:00", venue: "Vicar Street" },
-  ]);
+  const [attendedEvents, setAttendedEvents] = useState([]);
+  const [savedEvents,    setSavedEvents]    = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [allGenres,      setAllGenres]      = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
@@ -70,7 +66,7 @@ export default function ProfilePage() {
   const bioRef = useRef(null);
 
   const username = dbUser?.userName;
-  const userId = dbUser?.useId;
+  const userId = dbUser?.userId;
 
   /* ── fetch── */
   useEffect(() => {
@@ -80,7 +76,7 @@ export default function ProfilePage() {
       try {
         const [p, a, s, i] = await Promise.all([
           fetch(`/ad-users/${username}`,  { credentials: "include" }),
-          fetch(`/ad-posts/attend/user/${userId}`, { credentials: "include" }),
+          fetch(`/ad-posts/user/${userId}`,           { credentials: "include" }),
           fetch(`/ad-posts/saves/user/${userId}`,    { credentials: "include" }),
           fetch(`/ad-users/${userId}/userinterests`,   { credentials: "include" }),
         ]);
