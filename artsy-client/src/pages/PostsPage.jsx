@@ -1,17 +1,26 @@
 //this is for the posts page, can be accessed through nav bar "community" link
 
-import { useState, useEffect } from "react";
+//import react functions
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
+//import icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
+//import components
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import PostCard from "../components/posts/PostCard";
 import NoisyPostCard from "../components/posts/NoisyPostCard";
 
+//import helper functions
+import { useAuth } from "../context/AuthContext";
+import { checkLikes } from "../utils/postHelpers";
+
+//import styles
 import "../styles/pages/posts.css";
+
 
 function PostsPage() {
     const [posts, setPosts] = useState([]);
@@ -24,8 +33,21 @@ function PostsPage() {
     const [reviewersError, setReviewersError] = useState(null);
 
     const [sortBy, setSortBy] = useState("Newest");
-    const [mode, setMode] = useState(() => localStorage.getItem("postsMode") ?? "peace");
+    
+    const [likedIds, setLikedIds] = useState([]);
+    const checkedIdsRef = useRef(new Set());//store ids have been checked like state
 
+    const [visibleCount, setVisibleCount] = useState(10);
+    const PAGE_SIZE = 10;//default shown card num
+
+    const { dbUser } = useAuth();//get login user info
+    function requireAuth(message, action) {
+        if (!dbUser) { setLoginPrompt(message); return; }
+        action();
+    }
+
+    // ----------- set view mode
+    const [mode, setMode] = useState(() => localStorage.getItem("postsMode") ?? "peace");
     function handleSetMode(m) {
         setMode(m);
         localStorage.setItem("postsMode", m);
@@ -33,7 +55,9 @@ function PostsPage() {
 
     const topReviewerLimit = 5;
 
+// ------------------- functions that run when loaded
     useEffect(() => {
+        // err messages
         const statusMessages = {
             400: "Bad request.",
             401: "Please log in to continue.",
@@ -73,6 +97,32 @@ function PostsPage() {
         fetchReviewers();
     }, []);
 
+// ---------- functions that runs when visible posts changes
+    useEffect(() => {
+        if (!dbUser || postsLoading || !posts.length) return;
+
+        //sort by function
+        const sorted = [...posts].sort((a, b) => {
+            if (sortBy === "Popular")
+                return b.likeCount + b.commentCount * 3 - (a.likeCount + a.commentCount * 3);
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            return sortBy === "Newest" ? dateB - dateA : dateA - dateB;
+        });
+
+        const unchecked = sorted
+            .slice(0, visibleCount)
+            .map((p) => p.postId)
+            .filter((id) => !checkedIdsRef.current.has(id));
+
+        if (!unchecked.length) return;
+        unchecked.forEach((id) => checkedIdsRef.current.add(id));
+
+        checkLikes(unchecked).then((newLiked) => {
+            setLikedIds((prev) => [...prev, ...newLiked.filter((id) => !prev.includes(id))]);
+        });
+    }, [posts, sortBy, visibleCount, dbUser, postsLoading]);
+
     const sortedPosts = [...posts].sort((a, b) => {
         if (sortBy === "Popular")
             return b.likeCount + b.commentCount * 3 - (a.likeCount + a.commentCount * 3);
@@ -84,7 +134,11 @@ function PostsPage() {
     const sortOptions = ["Newest", "Oldest", "Popular"];
     function toggleSort() {
         setSortBy((s) => sortOptions[(sortOptions.indexOf(s) + 1) % sortOptions.length]);
+        setVisibleCount(PAGE_SIZE);
     }
+
+    const visiblePosts = sortedPosts.slice(0, visibleCount);
+    const hasMore = visibleCount < sortedPosts.length;
 
     const isNoisy = mode === "noisy";
 
@@ -96,13 +150,13 @@ function PostsPage() {
 
                 <div className="posts-page__layout">
 
-                    {/* ── Main column ── */}
+                    {/* ----- Main column ----- */}
                     <div>
                         <div className="posts-page__top-row">
                             <div className="posts-page__header-left">
                                 <span className="posts-page__title">POPULAR REVIEWS</span>
 
-                                {/* ── Mode toggle ── */}
+                                {/* ----- Mode toggle ----- */}
                                 <div className="posts-mode-bar">
                                     <button
                                         className={`posts-mode-btn ${!isNoisy ? "posts-mode-btn--active" : ""}`}
@@ -119,12 +173,14 @@ function PostsPage() {
                                 </div>
                             </div>
 
+                            {/* ----- sort by functions ----- */}
                             <button className="posts-page__sort-btn" onClick={toggleSort}>
                                 Sort by {sortBy.toUpperCase()}
                                 <FontAwesomeIcon icon={sortBy === "Oldest" ? faChevronUp : faChevronDown} />
                             </button>
                         </div>
 
+                    {/* err messages */}
                         {postsError ? (
                             <p className="posts-page__error">Error: {postsError}</p>
                         ) : postsLoading ? (
@@ -132,24 +188,50 @@ function PostsPage() {
                         ) : sortedPosts.length === 0 ? (
                             <p className="posts-page__empty">No posts yet.</p>
                         ) : isNoisy ? (
-                            <div className="posts-masonry">
-                                {sortedPosts.map((post, i, arr) => {
-                                    const wantsPoster = !!(post.posterUrl && post.postId % 2 === 0);
-                                    const prevIsPoster = i > 0 && !!(arr[i - 1].posterUrl && arr[i - 1].postId % 2 === 0);
-                                    const showPoster = wantsPoster && !prevIsPoster;
-                                    return <NoisyPostCard key={post.postId} post={post} showPoster={showPoster} />;
-                                })}
-                            </div>
+                            <>
+                                <div className="posts-masonry">
+                                    {visiblePosts.map((post, i) => (
+                                        <NoisyPostCard
+                                            key={post.postId}
+                                            post={post}
+                                            showPoster={i % 4 === 3 && !!post.posterUrl}
+                                        />
+                                    ))}
+                                </div>
+
+                                {hasMore && (
+                                    <div className="posts-load-more">
+                                        <button
+                                            className="posts-load-more__btn"
+                                            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                                        >
+                                            Load More
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         ) : (
-                            <div className="posts-list">
-                                {sortedPosts.map((post) => (
-                                    <PostCard key={post.postId} post={post} />
-                                ))}
-                            </div>
+                            <>
+                                <div className="posts-list">
+                                    {visiblePosts.map((post) => (
+                                        <PostCard key={post.postId} post={post} liked={likedIds.includes(post.postId)} />
+                                    ))}
+                                </div>
+                                {hasMore && (
+                                    <div className="posts-load-more">
+                                        <button
+                                            className="posts-load-more__btn"
+                                            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                                        >
+                                            Load More
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
 
-                    {/* ── Sidebar: popular reviewers ── */}
+                    {/* ----- Sidebar: popular reviewers ----- */}
                     <aside className="posts-sidebar">
                         <div className="posts-sidebar__header">
                             <span className="posts-sidebar__title">Popular Reviewers</span>

@@ -8,12 +8,13 @@ import "../../styles/components/post-card.css";
 
 //import icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart, faComment } from "@fortawesome/free-regular-svg-icons";
-import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartRegular, faComment } from "@fortawesome/free-regular-svg-icons";
+import { faStar as faStarSolid, faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 
 
-function PostCard({ post }) {   
+function PostCard({ post, liked = false }) {   
+
     //tranform database values
     const imageUrl = post.posterUrl;
     const postDate = new Date(post.createdAt).toLocaleString("en-GB", {
@@ -26,8 +27,6 @@ function PostCard({ post }) {
         month: "short",
         year: "numeric",
     }) : null;
-
-    //to icon presentation (rating)
     const renderStars = (rating) => {
         return Array.from({ length: 5 }, (_, i) => (
             <FontAwesomeIcon
@@ -37,6 +36,7 @@ function PostCard({ post }) {
         ));
     };
 
+//------------------------component render
     return (
         <div className="post-card">
             <Link to={`/posts/${post.postId}`} className="post-card__link">
@@ -55,11 +55,11 @@ function PostCard({ post }) {
                         {/* {eventDate && <span className="post-card__year">{eventDate}</span>} */}
                     </div>
 
-                    {/* Stars + watched by*/}
+                    {/* Stars + Attended by*/}
                     <div className="post-card__meta-row">
                         <span className="post-card__stars">{renderStars(post.rating)}</span>
                         <span className="post-card__watched">
-                            Watched by{" "}
+                            Attended by{" "}
                             <span className="post-card__username">{post.username}</span>
                         </span>
                     </div>
@@ -73,7 +73,7 @@ function PostCard({ post }) {
                     {/* like + comment count */}
                     <div className="post-card__footer">
                         <span className="post-card__like-count">
-                            <FontAwesomeIcon icon={faHeart} />
+                            <FontAwesomeIcon icon={liked ? faHeartSolid : faHeartRegular} />
                             {post.likeCount?.toLocaleString()} likes
                         </span>
                         <span className="post-card__comment-count">

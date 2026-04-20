@@ -3,6 +3,7 @@
 //import react functions
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { checkLikes } from "../utils/postHelpers";
 
 //import backend api
 //const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -26,7 +27,6 @@ import "../index.css";
 import "../styles/pages/post-detail.css";
 
 
-// ==================== functions handling
 function PostDetailPage() {
     const navigate = useNavigate();
     const { id } = useParams(); //get postId from para
@@ -50,8 +50,10 @@ function PostDetailPage() {
     const [postDeleteConfirm, setPostDeleteConfirm] = useState(false);
 
     const commentsRef = useRef(null);
+    const likeCheckedRef = useRef(false);
 
     const { dbUser } = useAuth(); //get login user info
+    
     function requireAuth(message, action) {
         if (!dbUser) { setLoginPrompt(message); return; }
         action();
@@ -82,7 +84,6 @@ function PostDetailPage() {
                 const data = await parseResponse(res);
                 setPost(data);
                 setLikeCount(data.likeCount ?? 0);
-                setLiked(data.liked ?? false);
                 setComments(data.comments ?? []);
 
                 if (data.eventId) {
@@ -98,6 +99,17 @@ function PostDetailPage() {
 
         fetchPost();
     }, [id]);
+
+    // check likes for main post + every comment/reply once both are ready
+    useEffect(() => {
+        if (!post || !dbUser || likeCheckedRef.current) return;
+        likeCheckedRef.current = true;
+
+        checkLikes(collectAllIds(post, comments)).then((likedArr) => {
+            setLiked(likedArr.includes(post.postId));
+            setComments((prev) => applyLikedRecursive(prev, likedArr));
+        });
+    }, [post, dbUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ------- interaction handlers
     //open image in full screen
@@ -365,6 +377,26 @@ function PostDetailPage() {
 }
 
 // ---- helpers to update nested comment state
+function collectAllIds(post, comments) {
+    const ids = [post.postId];
+    function collect(list) {
+        for (const c of list) {
+            ids.push(c.postId);
+            if (c.replies?.length) collect(c.replies);
+        }
+    }
+    collect(comments);
+    return ids;
+}
+
+function applyLikedRecursive(comments, likedArr) {
+    return comments.map((c) => ({
+        ...c,
+        liked: likedArr.includes(c.postId),
+        replies: c.replies?.length ? applyLikedRecursive(c.replies, likedArr) : c.replies,
+    }));
+}
+
 function updateCommentContent(comments, postId, content) {
     return comments.map((c) => {
         if (c.postId === postId) return { ...c, content };

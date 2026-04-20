@@ -119,7 +119,7 @@
     line-height: 1.55;
     font-style: italic;
     opacity: 0.8;
-    overflow: visible;
+    overflow-wrap: break-word;
 }
 
 /* Footer */
