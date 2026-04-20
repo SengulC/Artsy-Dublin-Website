@@ -1,14 +1,15 @@
 //this is for the posts page, can be accessed through nav bar "community" link
 
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronUp, faDove, faBolt } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import PostCard from "../components/posts/PostCard";
-import EnergeticPostCard from "../components/posts/EnergeticPostCard";
+import NoisyPostCard from "../components/posts/NoisyPostCard";
 
 import "../styles/pages/posts.css";
 
@@ -98,29 +99,30 @@ function PostsPage() {
                     {/* ── Main column ── */}
                     <div>
                         <div className="posts-page__top-row">
-                            <div className="posts-page__header">
-                                <span className="posts-page__title">Popular Reviews</span>
-                                <button className="posts-page__sort-btn" onClick={toggleSort}>
-                                    Sort by {sortBy.toUpperCase()}
-                                    <FontAwesomeIcon icon={sortBy === "Oldest" ? faChevronUp : faChevronDown} />
-                                </button>
+                            <div className="posts-page__header-left">
+                                <span className="posts-page__title">POPULAR REVIEWS</span>
+
+                                {/* ── Mode toggle ── */}
+                                <div className="posts-mode-bar">
+                                    <button
+                                        className={`posts-mode-btn ${!isNoisy ? "posts-mode-btn--active" : ""}`}
+                                        onClick={() => handleSetMode("peace")}
+                                    >
+                                        Peaceful
+                                    </button>
+                                    <button
+                                        className={`posts-mode-btn ${isNoisy ? "posts-mode-btn--active" : ""}`}
+                                        onClick={() => handleSetMode("noisy")}
+                                    >
+                                        Noisy
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* ── Mode toggle ── */}
-                            <div className="posts-mode-bar">
-                                <button
-                                    className={`posts-mode-btn ${!isNoisy ? "posts-mode-btn--active" : ""}`}
-                                    onClick={() => handleSetMode("peace")}
-                                >
-                                    <FontAwesomeIcon icon={faDove} /> Peaceful
-                                </button>
-                                <button
-                                    className={`posts-mode-btn ${isNoisy ? "posts-mode-btn--active" : ""}`}
-                                    onClick={() => handleSetMode("noisy")}
-                                >
-                                    <FontAwesomeIcon icon={faBolt} /> Noisy
-                                </button>
-                            </div>
+                            <button className="posts-page__sort-btn" onClick={toggleSort}>
+                                Sort by {sortBy.toUpperCase()}
+                                <FontAwesomeIcon icon={sortBy === "Oldest" ? faChevronUp : faChevronDown} />
+                            </button>
                         </div>
 
                         {postsError ? (
@@ -131,9 +133,12 @@ function PostsPage() {
                             <p className="posts-page__empty">No posts yet.</p>
                         ) : isNoisy ? (
                             <div className="posts-masonry">
-                                {sortedPosts.map((post) => (
-                                    <EnergeticPostCard key={post.postId} post={post} />
-                                ))}
+                                {sortedPosts.map((post, i, arr) => {
+                                    const wantsPoster = !!(post.posterUrl && post.postId % 2 === 0);
+                                    const prevIsPoster = i > 0 && !!(arr[i - 1].posterUrl && arr[i - 1].postId % 2 === 0);
+                                    const showPoster = wantsPoster && !prevIsPoster;
+                                    return <NoisyPostCard key={post.postId} post={post} showPoster={showPoster} />;
+                                })}
                             </div>
                         ) : (
                             <div className="posts-list">
@@ -157,8 +162,9 @@ function PostsPage() {
                             ) : reviewersLoading ? (
                                 <p className="posts-page__loading">Loading…</p>
                             ) : (
-                                topReviewers.map(({ userName, reviewCount }) => (
-                                    <div key={userName} className="reviewer-item">
+                                topReviewers.map(({ userName, reviewCount }, index) => (
+                                    <Link key={userName} to={`/users/${userName}`} className="reviewer-item">
+                                        <span className="reviewer-item__rank">{index + 1}</span>
                                         <div className="reviewer-item__avatar">
                                             {userName[0].toUpperCase()}
                                         </div>
@@ -168,7 +174,7 @@ function PostsPage() {
                                                 {reviewCount}{" "}{reviewCount === 1 ? "review" : "reviews"}
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))
                             )}
                         </div>

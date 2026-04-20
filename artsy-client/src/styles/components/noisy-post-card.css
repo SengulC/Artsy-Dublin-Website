@@ -1,6 +1,6 @@
-/* ── Energetic (Noisy) Post Card ─────────────────────────────────────────── */
+/* ── Noisy Post Card ─────────────────────────────────────────── */
 
-.ecard {
+.ncard {
     position: relative;
     border-radius: 20px;
     overflow: hidden;
@@ -13,11 +13,11 @@
 }
 
 /* Height tiers */
-.ecard--small  { min-height: 220px; }
-.ecard--medium { min-height: 340px; }
-.ecard--large  { min-height: 460px; }
+.ncard--small  { min-height: 250px; }
+.ncard--medium { min-height: 380px; }
+.ncard--large  { min-height: 480px; }
 
-.ecard__link {
+.ncard__link {
     display: flex;
     flex-direction: column;
     min-height: inherit;
@@ -27,7 +27,7 @@
 
 /* ══ COLOR CARD LAYOUT ══════════════════════════════════════════════════════ */
 
-.ecard--color .ecard__body {
+.ncard--color .ncard__body {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -37,7 +37,7 @@
     transition: opacity 0.25s ease;
 }
 
-.ecard--color .ecard__title {
+.ncard--color .ncard__title {
     font-family: var(--font-display);
     font-size: 26px;
     font-weight: 900;
@@ -45,41 +45,38 @@
     text-transform: uppercase;
     line-height: 1.05;
     margin: 0 0 10px;
-    color: var(--ecard-text);
+    color: var(--ncard-text);
 }
 
 /* title font-size set dynamically in JS based on title length */
 
-.ecard--color .ecard__excerpt {
+.ncard--color .ncard__excerpt {
     font-size: 14px;
     line-height: 1.55;
-    color: var(--ecard-text);
+    color: var(--ncard-text);
     opacity: 0.65;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    overflow: visible;
     margin: 0;
     flex: 1;
 }
 
-.ecard--color .ecard__footer {
+.ncard--color .ncard__footer {
     display: flex;
     justify-content: flex-end;
     margin-top: 14px;
 }
 
-.ecard--color .ecard__rating {
+.ncard--color .ncard__rating {
     display: flex;
     gap: 3px;
     font-size: 11px;
-    color: var(--ecard-text);
+    color: var(--ncard-text);
     opacity: 0.8;
 }
 
 /* ══ POSTER CARD LAYOUT ═════════════════════════════════════════════════════ */
 
-.ecard--poster .ecard__body {
+.ncard--poster .ncard__body {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -90,7 +87,7 @@
     z-index: 1;
 }
 
-.ecard--poster .ecard__title {
+.ncard--poster .ncard__title {
     font-family: var(--font-display);
     font-size: 22px;
     font-weight: 900;
@@ -101,19 +98,19 @@
     margin: 0 0 8px;
 }
 
-.ecard--poster.ecard--large .ecard__title { font-size: 28px; }
-.ecard--poster.ecard--small .ecard__title { font-size: 17px; }
+.ncard--poster.ncard--large .ncard__title { font-size: 28px; }
+.ncard--poster.ncard--small .ncard__title { font-size: 17px; }
 
-.ecard--poster .ecard__excerpt {
+.ncard--poster .ncard__excerpt {
     display: none;
 }
 
-.ecard--poster .ecard__footer {
+.ncard--poster .ncard__footer {
     display: flex;
     justify-content: flex-end;
 }
 
-.ecard--poster .ecard__rating {
+.ncard--poster .ncard__rating {
     display: flex;
     gap: 3px;
     font-size: 11px;
@@ -122,7 +119,7 @@
 
 /* ══ HOVER OVERLAY ══════════════════════════════════════════════════════════ */
 
-.ecard__overlay {
+.ncard__overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.82);
@@ -135,10 +132,10 @@
     z-index: 2;
 }
 
-.ecard:hover .ecard__overlay { opacity: 1; }
-.ecard:hover .ecard__body    { opacity: 0; }
+.ncard:hover .ncard__overlay { opacity: 1; }
+.ncard:hover .ncard__body    { opacity: 0; }
 
-.ecard__overlay-inner {
+.ncard__overlay-inner {
     padding: 24px;
     text-align: center;
     color: #fff;
@@ -149,7 +146,7 @@
     width: 100%;
 }
 
-.ecard__ov-user {
+.ncard__ov-user {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -158,7 +155,7 @@
     margin: 0;
 }
 
-.ecard__ov-title {
+.ncard__ov-title {
     font-family: var(--font-display);
     font-size: 22px;
     font-weight: 900;
@@ -168,11 +165,11 @@
     margin: 0;
 }
 
-.ecard--large .ecard__ov-title  { font-size: 28px; }
-.ecard--small .ecard__ov-title  { font-size: 18px; }
+.ncard--large .ncard__ov-title  { font-size: 28px; }
+.ncard--small .ncard__ov-title  { font-size: 18px; }
 
-.ecard__ov-venue,
-.ecard__ov-date {
+.ncard__ov-venue,
+.ncard__ov-date {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -181,7 +178,7 @@
     margin: 0;
 }
 
-.ecard__ov-stars {
+.ncard__ov-stars {
     display: flex;
     gap: 4px;
     color: #ffd700;
@@ -189,7 +186,7 @@
     margin-top: 2px;
 }
 
-.ecard__ov-cta {
+.ncard__ov-cta {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -206,7 +203,7 @@
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.ecard:hover .ecard__ov-cta {
+.ncard:hover .ncard__ov-cta {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.7);
 }
