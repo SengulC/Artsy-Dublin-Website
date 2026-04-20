@@ -85,7 +85,6 @@ function EventDetailPage() {
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
     const [savedRelatedIds, setSavedRelatedIds] = useState([]);
-    const saveCheckedRef = useRef(false);
     const [attendId, setAttendId] = useState(null);
     const [loginPrompt, setLoginPrompt] = useState(null);
     const reviewCtaRef = useRef(null);
@@ -129,10 +128,8 @@ function EventDetailPage() {
         if (!event?.eventId) return;
 
         try {
-            const method = saved ? "DELETE" : "POST";
-
             const res = await fetch(`/ad-posts/${event.eventId}/save`, {
-                method,
+                method: "POST",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
@@ -149,13 +146,12 @@ function EventDetailPage() {
 
             setSaved(!!data.saved);
 
-            // 再抓一次最新 event detail
             const eventRes = await fetch(`/ad-events/event/${event.eventId}`);
             const eventData = await eventRes.json();
 
             setEvent((prev) => ({
                 ...prev,
-                saveCount: eventData.saveCount ?? 0,
+                saveCount: eventData.saveCount ?? prev?.saveCount ?? 0,
             }));
         } catch (err) {
             console.error("Save event failed:", err);
@@ -254,14 +250,20 @@ function EventDetailPage() {
 
     //check saved events
     useEffect(() => {
-        if (!event || !dbUser || saveCheckedRef.current) return;
-        saveCheckedRef.current = true;
+        if (!event?.eventId || !dbUser?.userId) return;
+
         const allIds = [event.eventId, ...relatedEvents.map((e) => e.eventId)];
+        console.log("allIds:", allIds);
+
         checkSaves(allIds).then((savedIds) => {
+            console.log("savedIds:", savedIds, "current eventId:", event.eventId);
+
             setSaved(savedIds.includes(event.eventId));
             setSavedRelatedIds(savedIds);
+        }).catch((err) => {
+            console.error("Failed to check saves:", err);
         });
-    }, [event, dbUser, relatedEvents]);
+    }, [event?.eventId, dbUser?.userId, relatedEvents]);
 
     if (loading) {
         return <p className="status-message">Loading event...</p>;

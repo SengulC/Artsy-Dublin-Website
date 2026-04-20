@@ -78,7 +78,7 @@ export default function HomeIntroLoader({
             return;
         }
 
-        const t1 = setTimeout(() => setPhase("title"), 1300);
+        const t1 = setTimeout(() => setPhase("title"), 1500);
         const t2 = setTimeout(() => setPhase("burst"), 2300);
         const t3 = setTimeout(() => setPhase("settled"), 3400);
         const t4 = setTimeout(() => {

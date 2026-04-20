@@ -25,6 +25,7 @@ import Me from "./pages/Me";
 import Chat from "./pages/Chat";
 import UserProfile from "./pages/UserProfile";
 import ProfilePage from "./pages/ProfilePage";
+import AllEventsPage from "./pages/AllEventsPage";
 
 import './index.css'
 import './styles/component.css'
@@ -40,6 +41,7 @@ function HomePage() {
   const [sortOrder, setSortOrder] = useState("Soonest");
   const [visibleCount, setVisibleCount] = useState(8);
   const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const [savedEventIds, setSavedEventIds] = useState([]);
   const saveCheckedRef = useRef(false);
   const { dbUser } = useAuth();
@@ -52,9 +54,12 @@ function HomePage() {
   //   setShowIntro(false);
   // };
 
-  const [introDone, setIntroDone] = useState(false);
+  const [introDone, setIntroDone] = useState(() => {
+    return sessionStorage.getItem("artsyIntroPlayed") === "true";
+  });
 
   const handleIntroFinish = () => {
+    sessionStorage.setItem("artsyIntroPlayed", "true");
     setIntroDone(true);
   };
 
@@ -105,10 +110,12 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!dbUser || loading || !events.length || saveCheckedRef.current) return;
-    saveCheckedRef.current = true;
-    checkSaves(events.map((e) => e.eventId)).then(setSavedEventIds);
-  }, [events, dbUser, loading]);
+    if (!dbUser?.userId || loading || !events.length) return;
+
+    checkSaves(events.map((e) => e.eventId))
+      .then(setSavedEventIds)
+      .catch((err) => console.error("Failed to check saves:", err));
+  }, [events, dbUser?.userId, loading]);
 
   function getEventTags(event) {
     if (event.eventTypeId === "tmdbFilm") return ["Film"];
@@ -186,8 +193,10 @@ function HomePage() {
     <>
 
       <div className="home-header-overlay">
-        <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      </div>
+        <Header
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          onSearch={() => setSearchTerm(inputValue.trim())} />      </div>
       <HomeIntroLoader
         events={events}
         playIntro={!introDone}
@@ -516,6 +525,7 @@ function App() {
             <Login />
           </div>
         } />
+        <Route path="/events" element={<AllEventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
         <Route path="/register" element={
           <div className="auth-layout">
@@ -533,6 +543,7 @@ function App() {
         <Route path="/messages/:conversationId" element={<Chat />} />
         <Route path="/users/:username" element={<UserProfile />} />
         <Route path="/profile" element={<ProfilePage />} />
+
       </Routes>
     </BrowserRouter>
   );

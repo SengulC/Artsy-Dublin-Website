@@ -11,7 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AnimatedTextLink from "../ui/AnimatedTextLink";
 import { useAuth } from "../../context/AuthContext";
 
-function Header({ searchTerm = "", setSearchTerm = () => { } }) {
+function Header({ inputValue, setInputValue, onSearch }) {
     const { dbUser, refreshAuth } = useAuth();
     const navigate = useNavigate();
 
@@ -88,18 +88,23 @@ function Header({ searchTerm = "", setSearchTerm = () => { } }) {
                 <div className="search-bar">
                     <input
                         type="text"
-                        placeholder="Search events, venues, or keywords..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                onSearch();
+                            }
+                        }}
                         className="search-bar__input"
+                        placeholder="Search events..."
                     />
-                    <button type="button" className="search-bar__button" aria-label="Search">
+                    <button type="button" onClick={onSearch} className="search-bar__button" aria-label="Search">
                         <FontAwesomeIcon icon={faMagnifyingGlass} />
                     </button>
                 </div>
 
                 <nav className="header__nav">
-                    <AnimatedTextLink to="/" text="ALL EVENTS" />
+                    <AnimatedTextLink to="/events" text="ALL EVENTS" />
                     <AnimatedTextLink to="/posts" text="COMMUNITY" />
                     <AnimatedTextLink to="/messages" text="MESSAGE" />
                     <AnimatedTextLink to="/team" text="TEAM" />
