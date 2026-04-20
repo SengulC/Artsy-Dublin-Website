@@ -138,13 +138,13 @@ function CommentItem({
     comment,
     currentUserId,
     onAddReply,
+    onLikeComment,
     onEdit,
     onDelete,
     onOpenLightbox,
     isLoggedIn,
     onLoginRequired,
 }) {
-    const [liked, setLiked] = useState(false);
     const [showReplyForm, setShowReplyForm] = useState(false);
     const [editing, setEditing] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -153,7 +153,7 @@ function CommentItem({
 
     function handleLike() {
         if (!isLoggedIn) { onLoginRequired?.("Log in to like comments"); return; }
-        setLiked((p) => !p);
+        onLikeComment?.(comment.postId);
     }
 
     function handleReply() {
@@ -196,6 +196,7 @@ function CommentItem({
                     <PostImageRow
                         images={comment.images}
                         onOpenLightbox={(i) => onOpenLightbox?.(comment.images, i)}
+                        compact
                     />
                 )}
 
@@ -204,10 +205,10 @@ function CommentItem({
                         <button
                             className="comment-item__action-btn"
                             onClick={handleLike}
-                            aria-label={liked ? "Unlike" : "Like"}
+                            aria-label={comment.liked ? "Unlike" : "Like"}
                         >
-                            <FontAwesomeIcon icon={liked ? solidHeart : regularHeart} />{" "}
-                            {(comment.likeCount ?? 0) + (liked ? 1 : 0)}
+                            <FontAwesomeIcon icon={comment.liked ? solidHeart : regularHeart} />{" "}
+                            {comment.likeCount ?? 0}
                         </button>
 
                         <button className="comment-item__action-btn" onClick={handleReply}>
@@ -273,6 +274,7 @@ function CommentItem({
                                 comment={reply}
                                 currentUserId={currentUserId}
                                 onAddReply={onAddReply}
+                                onLikeComment={onLikeComment}
                                 onEdit={onEdit}
                                 onDelete={onDelete}
                                 onOpenLightbox={onOpenLightbox}
@@ -295,6 +297,7 @@ function CommentSection({
     currentUserId,
     onSubmit,
     onAddReply,
+    onLikeComment,
     onEdit,
     onDelete,
     onOpenLightbox,
@@ -325,6 +328,7 @@ function CommentSection({
                         comment={comment}
                         currentUserId={currentUserId}
                         onAddReply={onAddReply}
+                        onLikeComment={onLikeComment}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onOpenLightbox={onOpenLightbox}
