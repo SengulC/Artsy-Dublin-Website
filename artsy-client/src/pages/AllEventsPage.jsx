@@ -218,11 +218,17 @@ export default function AllEventsPage() {
         const rightTop = filteredEvents[2] ?? featured;
         const rightBottom = filteredEvents[3] ?? left ?? featured;
 
+        const bottomLeft = filteredEvents[4] ?? featured;
+        const bottomCenter = filteredEvents[5] ?? left ?? featured;
+        const bottomRight = filteredEvents[6] ?? rightTop ?? featured;
         return {
             featured,
             left,
             rightTop,
             rightBottom,
+            bottomLeft,
+            bottomCenter,
+            bottomRight,
         };
     }, [filteredEvents]);
     function handleSearchSubmit() {
@@ -329,90 +335,86 @@ export default function AllEventsPage() {
                                     />
 
                                     {heroEvents.featured && (
-                                        <article className="all-events-featured">
-                                            <Link
-                                                to={`/events/${heroEvents.featured.eventId}`}
-                                                className="all-events-featured__card"
+                                        <Link
+                                            to={`/events/${heroEvents.featured.eventId}`}
+                                            className="all-events-featured__card"
+                                        >
+                                            <img
+                                                src={
+                                                    heroEvents.featured.posterUrl ||
+                                                    "https://via.placeholder.com/1400x900?text=No+Image"
+                                                }
+                                                alt={heroEvents.featured.title}
+                                                className="all-events-featured__image"
+                                            />
+
+                                            <div className="all-events-featured__overlay"></div>
+
+                                            <span className="all-events-featured__date">
+                                                {formatHeroDate(heroEvents.featured.startDateTime)}
+                                            </span>
+
+                                            <div className="all-events-featured__content">
+                                                <p className="all-events-featured__type">
+                                                    {heroEvents.featured.eventTypeName ||
+                                                        getEventTypeLabel(heroEvents.featured.eventTypeId)}
+                                                </p>
+
+                                                <h2>{heroEvents.featured.title}</h2>
+
+                                                <p className="all-events-featured__subtitle">
+                                                    {heroEvents.featured.description?.trim()
+                                                        ? heroEvents.featured.description.slice(0, 90)
+                                                        : heroEvents.featured.venue || "Explore this featured event"}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    )}
+
+                                    {heroEvents.featured && (
+                                        <Link
+                                            to={`/events/${heroEvents.featured.eventId}`}
+                                            className="all-events-rotating-logo"
+                                            aria-label={`Open ${heroEvents.featured.title}`}
+                                        >
+                                            <svg
+                                                viewBox="0 0 200 200"
+                                                className="all-events-rotating-logo__ring"
+                                                aria-hidden="true"
                                             >
-                                                <img
-                                                    src={
-                                                        heroEvents.featured.posterUrl ||
-                                                        "https://via.placeholder.com/1400x900?text=No+Image"
-                                                    }
-                                                    alt={heroEvents.featured.title}
-                                                    className="all-events-featured__image"
-                                                />
+                                                <defs>
+                                                    <path
+                                                        id="allEventsBadgePath"
+                                                        d="
+                          M 100,100
+                          m -72,0
+                          a 72,72 0 1,1 144,0
+                          a 72,72 0 1,1 -144,0
+                        "
+                                                    />
+                                                </defs>
 
-                                                <div className="all-events-featured__overlay"></div>
+                                                <text>
+                                                    <textPath href="#allEventsBadgePath" startOffset="0%">
+                                                        ARTSY DUBLIN • VIEW EVENT • ARTSY DUBLIN • VIEW EVENT •
+                                                    </textPath>
+                                                </text>
+                                            </svg>
 
-                                                <span className="all-events-featured__date">
-                                                    {formatHeroDate(heroEvents.featured.startDateTime)}
-                                                </span>
-
-                                                {/* <span className="all-events-featured__brand">
-                                                    AD
-                                                </span> */}
-
-                                                <div className="all-events-featured__content">
-                                                    <p className="all-events-featured__type">
-                                                        {heroEvents.featured.eventTypeName ||
-                                                            getEventTypeLabel(heroEvents.featured.eventTypeId)}
-                                                    </p>
-
-                                                    <h2>{heroEvents.featured.title}</h2>
-
-                                                    <p className="all-events-featured__subtitle">
-                                                        {heroEvents.featured.description?.trim()
-                                                            ? heroEvents.featured.description.slice(0, 90)
-                                                            : heroEvents.featured.venue || "Explore this featured event"}
-                                                    </p>
-                                                </div>
-                                            </Link>
-
-                                            <Link
-                                                to={`/events/${heroEvents.featured.eventId}`}
-                                                className="all-events-rotating-logo"
-                                                aria-label={`Open ${heroEvents.featured.title}`}
-                                            >
+                                            <span className="all-events-rotating-logo__core">
                                                 <svg
-                                                    viewBox="0 0 200 200"
-                                                    className="all-events-rotating-logo__ring"
+                                                    viewBox="0 0 48 48"
+                                                    className="all-events-rotating-logo__mark"
                                                     aria-hidden="true"
                                                 >
-                                                    <defs>
-                                                        <path
-                                                            id="allEventsBadgePath"
-                                                            d="
-                              M 100,100
-                              m -72,0
-                              a 72,72 0 1,1 144,0
-                              a 72,72 0 1,1 -144,0
-                            "
-                                                        />
-                                                    </defs>
-
-                                                    <text>
-                                                        <textPath href="#allEventsBadgePath" startOffset="0%">
-                                                            ARTSY DUBLIN • VIEW EVENT • ARTSY DUBLIN • VIEW EVENT •
-                                                        </textPath>
-                                                    </text>
+                                                    <path
+                                                        fill="currentColor"
+                                                        d="M24 6L28.6 17.4L40 22L28.6 26.6L24 38L19.4 26.6L8 22L19.4 17.4Z"
+                                                    />
+                                                    <circle cx="24" cy="22" r="3.2" fill="#1f1712" />
                                                 </svg>
-
-                                                <span className="all-events-rotating-logo__core">
-                                                    <svg
-                                                        viewBox="0 0 48 48"
-                                                        className="all-events-rotating-logo__mark"
-                                                        aria-hidden="true"
-                                                    >
-                                                        <path
-                                                            fill="currentColor"
-                                                            d="M24 6L28.6 17.4L40 22L28.6 26.6L24 38L19.4 26.6L8 22L19.4 17.4Z"
-                                                        />
-                                                        <circle cx="24" cy="22" r="3.2" fill="#1f1712" />
-                                                    </svg>
-                                                </span>
-                                            </Link>
-                                        </article>
+                                            </span>
+                                        </Link>
                                     )}
 
                                     <HeroMosaicCard
@@ -423,6 +425,21 @@ export default function AllEventsPage() {
                                     <HeroMosaicCard
                                         event={heroEvents.rightBottom}
                                         className="all-events-mosaic-card--right-bottom"
+                                    />
+
+                                    <HeroMosaicCard
+                                        event={heroEvents.bottomLeft}
+                                        className="all-events-mosaic-card--bottom-left"
+                                    />
+
+                                    <HeroMosaicCard
+                                        event={heroEvents.bottomCenter}
+                                        className="all-events-mosaic-card--bottom-center"
+                                    />
+
+                                    <HeroMosaicCard
+                                        event={heroEvents.bottomRight}
+                                        className="all-events-mosaic-card--bottom-right"
                                     />
                                 </section>
                             </>

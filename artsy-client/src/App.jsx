@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "./context/AuthContext";
 import { checkSaves } from "./utils/postHelpers";
@@ -37,7 +37,6 @@ function HomePage() {
   const [events, setEvents] = useState(mockEvents);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showLoader, setShowLoader] = useState(true);
   const [activeCategories, setActiveCategories] = useState([]);
   const [activeDate, setActiveDate] = useState("Upcoming");
   const [sortOrder, setSortOrder] = useState("Soonest");
@@ -45,17 +44,11 @@ function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [savedEventIds, setSavedEventIds] = useState([]);
-  const saveCheckedRef = useRef(false);
   const { dbUser } = useAuth();
-  const [showIntro, setShowIntro] = useState(() => {
-    return sessionStorage.getItem("artsyIntroPlayed") !== "true";
-  });
-
-  // const handleIntroFinish = () => {
-  //   sessionStorage.setItem("artsyIntroPlayed", "true");
-  //   setShowIntro(false);
-  // };
-
+  const navigate = useNavigate();
+  const showcaseRef = useRef(null);
+  const [showcaseProgress, setShowcaseProgress] = useState(0);
+  const [activeShowcaseEvent, setActiveShowcaseEvent] = useState(null);
   const [introDone, setIntroDone] = useState(() => {
     return sessionStorage.getItem("artsyIntroPlayed") === "true";
   });
@@ -112,6 +105,27 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
+    const handleScroll = () => {
+      if (!showcaseRef.current) return;
+
+      const rect = showcaseRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      const start = windowHeight;
+      const end = -rect.height;
+      const total = start - end;
+      const current = start - rect.top;
+      const progress = Math.min(Math.max(current / total, 0), 1);
+
+      setShowcaseProgress(progress);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+  useEffect(() => {
     if (!dbUser?.userId || loading || !events.length) return;
 
     checkSaves(events.map((e) => e.eventId))
@@ -134,6 +148,19 @@ function HomePage() {
     if (eventTypeId === "KZFzniwnSyZfZ7v7nJ") return "Music";
     if (eventTypeId === "KZFzniwnSyZfZ7v7na") return "Arts & Theatre";
     return "Other";
+  }
+
+  function formatShowcaseDate(dateString) {
+    if (!dateString) return "Coming soon";
+
+    const date = new Date(dateString.replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return "Coming soon";
+
+    return date.toLocaleDateString("en-IE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   }
 
   const filteredEvents = events
@@ -190,6 +217,32 @@ function HomePage() {
         : dateB - dateA;
     });
 
+  const filmEventsSource = (filteredEvents.length > 0 ? filteredEvents : events).filter(
+    (event) =>
+      event.eventTypeId === "tmdbFilm" ||
+      event.eventTypeName === "Film"
+  );
+
+  const showcaseEvents =
+    filmEventsSource.length > 0
+      ? filmEventsSource.slice(0, 12)
+      : (filteredEvents.length > 0 ? filteredEvents : events).slice(0, 12);
+
+  const leftRailEvents = showcaseEvents.filter((_, index) => index % 2 === 0);
+  const rightRailEvents = showcaseEvents.filter((_, index) => index % 2 !== 0);
+
+  const leftTranslate = -showcaseProgress * 220;
+  const rightTranslate = showcaseProgress * 320;
+
+  const currentShowcaseEvent =
+    activeShowcaseEvent ||
+    showcaseEvents[0] || {
+      title: "Discover Dublin’s film scene",
+      venue: "Artsy Dublin",
+      description: "Browse curated screenings, theatre, music films and creative events across the city.",
+      posterUrl: "",
+    };
+
   return (
 
     <>
@@ -198,74 +251,18 @@ function HomePage() {
         <Header
           inputValue={inputValue}
           setInputValue={setInputValue}
-          onSearch={() => setSearchTerm(inputValue.trim())} />      </div>
+          onSearch={() => setSearchTerm(inputValue.trim())} />
+      </div>
+
       <HomeIntroLoader
         events={events}
-        playIntro={!introDone}
-        onFinish={handleIntroFinish}
         titleTop="ARTSY DUBLIN"
         titleMiddle="FIND YOUR"
         titleBottom="NEXT EVENT"
+        onFinish={handleIntroFinish}
       />
-      {/* <div>
-        <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <div className="section-bg-text">Artsy<br></br>Dublin</div>
-        <div className="container">
-
-          <div className="home-hero">
-            <div className="home-hero__info"
-            ><h1 className="home-hero__title">What’s On</h1>
-              <p className="home-hero__subtitle">
-                Discover events, films, comedy and more across Dublin
-              </p>
-            </div>
-
-            <FilterBar
-              activeCategories={activeCategories}
-              setActiveCategories={setActiveCategories}
-              activeDate={activeDate}
-              setActiveDate={setActiveDate}
-              sortOrder={sortOrder}
-              setSortOrder={setSortOrder}
-            />
-          </div>
-
-          {loading && <p className="status-message">Loading events...</p>}
-          {error && <p className="status-message error">{error}</p>}
-          {filteredEvents.length === 0 && !loading && (
-            <p className="status-message">No matching events found.</p>
-          )}
-
-          <div className="events_grid">
-            {filteredEvents.slice(0, visibleCount).map((event) => (
-              <EventCard
-                key={event.eventId}
-                event={event}
-              // variant={getCardVariant(index)}
-              />
-            ))}
-          </div>
-          {visibleCount < filteredEvents.length && (
-            <div className="show-more-wrap">
-              <button
-                className="show-more-btn"
-                onClick={() => setVisibleCount(visibleCount + 8)}
-              >
-                Show More
-              </button>
-            </div>
-          )}
-
-          <MarqueeText />
-
-          <CalendarSection events={events} savedEventIds={savedEventIds} />
-          <Footer />
-        </div>
-
-      </div> */}
 
       <div className={`home-page-shell ${introDone ? "intro-done" : ""}`}>
-        {/* <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> */}
 
         <div className="section-bg-text">Artsy<br />Dublin</div>
 
@@ -280,6 +277,128 @@ function HomePage() {
               setSortOrder={setSortOrder}
             />
           </div>
+          <section className="home-showcase" ref={showcaseRef}>
+            <div className="home-showcase__intro">
+              <p className="home-showcase__eyebrow">Featured Screenings</p>
+
+              <h2 className="home-showcase__title">
+                DISCOVER <br />
+
+                <span className="word-accent">ART</span>
+                <span className="dot"> • </span>
+
+                <span className="word-red">FILM</span>
+                <span className="dot"> • </span>
+
+                <span className="word-blue">MUSIC</span>
+              </h2>
+
+              <p className="home-showcase__desc">
+                Move through Dublin’s creative nights.
+              </p>
+
+              <p className="home-showcase__desc">
+                Artsy Dublin helps you explore cinema, theatre, exhibitions and creative
+                nights worth leaving the house for. Save events, revisit details and find
+                your next cultural plan.
+              </p>
+
+              <div className="home-showcase__meta">
+                <span>{getEventTypeLabel(currentShowcaseEvent.eventTypeId)}</span>
+                <span>•</span>
+                <span>{currentShowcaseEvent.venue || "Dublin"}</span>
+                <span>•</span>
+                <span>{formatShowcaseDate(currentShowcaseEvent.startDateTime)}</span>
+              </div>
+
+              <h3 className="home-showcase__event-title">
+                {currentShowcaseEvent.title}
+              </h3>
+
+              <p className="home-showcase__event-desc">
+                {currentShowcaseEvent.description && currentShowcaseEvent.description.length > 180
+                  ? `${currentShowcaseEvent.description.slice(0, 180)}...`
+                  : currentShowcaseEvent.description || "Explore this event for more details."}
+              </p>
+
+              <div className="home-showcase__actions">
+                <button
+                  className="home-showcase__btn home-showcase__btn--primary"
+                  onClick={() =>
+                    currentShowcaseEvent?.eventId &&
+                    navigate(`/events/${currentShowcaseEvent.eventId}`)
+                  }
+                >
+                  View Event
+                </button>
+
+                <button
+                  className="home-showcase__btn home-showcase__btn--ghost"
+                  onClick={() => navigate("/events")}
+                >
+                  Browse All Events
+                </button>
+              </div>
+            </div>
+
+            <div className="home-showcase__rails">
+              <div
+                className="poster-rail poster-rail--up"
+                style={{ transform: `translateY(${leftTranslate}px)` }}
+              >
+                {[...leftRailEvents, ...leftRailEvents].map((event, index) => (
+                  <button
+                    key={`${event.eventId}-${index}-left`}
+                    className={`poster-card ${activeShowcaseEvent?.eventId === event.eventId ? "is-active" : ""
+                      }`}
+                    onMouseEnter={() => setActiveShowcaseEvent(event)}
+                    onFocus={() => setActiveShowcaseEvent(event)}
+                    onClick={() => navigate(`/events/${event.eventId}`)}
+                    type="button"
+                  >
+                    <img
+                      src={event.posterUrl || "https://via.placeholder.com/400x600?text=No+Poster"}
+                      alt={event.title}
+                      className="poster-card__img"
+                    />
+                    <div className="poster-card__overlay">
+                      <p className="poster-card__type">{getEventTypeLabel(event.eventTypeId)}</p>
+                      <h4>{event.title}</h4>
+                      <span>{event.venue || "Dublin"}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div
+                className="poster-rail poster-rail--down"
+                style={{ transform: `translateY(${rightTranslate}px)` }}
+              >
+                {[...rightRailEvents, ...rightRailEvents].map((event, index) => (
+                  <button
+                    key={`${event.eventId}-${index}-right`}
+                    className={`poster-card ${activeShowcaseEvent?.eventId === event.eventId ? "is-active" : ""
+                      }`}
+                    onMouseEnter={() => setActiveShowcaseEvent(event)}
+                    onFocus={() => setActiveShowcaseEvent(event)}
+                    onClick={() => navigate(`/events/${event.eventId}`)}
+                    type="button"
+                  >
+                    <img
+                      src={event.posterUrl || "https://via.placeholder.com/400x600?text=No+Poster"}
+                      alt={event.title}
+                      className="poster-card__img"
+                    />
+                    <div className="poster-card__overlay">
+                      <p className="poster-card__type">{getEventTypeLabel(event.eventTypeId)}</p>
+                      <h4>{event.title}</h4>
+                      <span>{event.venue || "Dublin"}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {loading && <p className="status-message">Loading events...</p>}
           {error && <p className="status-message error">{error}</p>}

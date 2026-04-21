@@ -110,7 +110,7 @@
 .related-events__title {
     font-size: 40px;
     font-family: var(--font-display);
-    color: #2b2b2b;
+    color: var(--color-brown);
     margin: 0;
 }
 
@@ -507,5 +507,50 @@
 
     .event-body {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 960px) {
+    .related-events {
+        margin-top: 80px;
+        padding-top: 40px;
+    }
+
+    .related-events__header {
+        margin-bottom: 24px;
+    }
+
+    .related-events__title {
+        font-size: 32px;
+    }
+
+    .related-events__subtitle {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .related-events__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+}
+
+@media (max-width: 640px) {
+    .related-events {
+        margin-top: 64px;
+        padding-top: 32px;
+    }
+
+    .related-events__title {
+        font-size: 26px;
+    }
+
+    .related-events__subtitle {
+        font-size: 14px;
+    }
+
+    .related-events__grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 }

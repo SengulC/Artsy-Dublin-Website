@@ -359,3 +359,231 @@
         font-size: 18px;
     }
 }
+
+.home-showcase {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.05fr) minmax(320px, 0.95fr);
+    gap: 2rem;
+    align-items: start;
+    min-height: 120vh;
+    padding: 4rem 0 6rem;
+    position: relative;
+}
+
+.home-showcase__intro {
+    position: sticky;
+    top: 110px;
+    align-self: start;
+    max-width: 560px;
+    padding: 2rem 1rem 2rem 0;
+}
+
+.home-showcase__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.home-showcase__title {
+    margin: 0;
+    font-size: clamp(2.8rem, 7vw, 5.8rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+}
+
+.home-showcase__desc {
+    margin: 1.5rem 0 1.2rem;
+    max-width: 520px;
+    font-size: 1rem;
+    line-height: 1.8;
+    opacity: 0.82;
+}
+
+.home-showcase__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+}
+
+.home-showcase__event-title {
+    margin: 0.6rem 0 0.8rem;
+    font-size: clamp(1.5rem, 2vw, 2.2rem);
+    line-height: 1.1;
+}
+
+
+.home-showcase__event-desc {
+    margin: 0;
+    max-width: 500px;
+    font-size: 0.98rem;
+    line-height: 1.75;
+    opacity: 0.82;
+}
+
+.word-accent {
+    color: #b38a63;
+}
+
+.word-soft {
+    color: #8e7d70;
+}
+
+.home-showcase__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 2rem;
+}
+
+.home-showcase__btn {
+    border: none;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.95rem 1.4rem;
+    font-size: 0.95rem;
+    transition: transform 0.25s ease, opacity 0.25s ease, background 0.25s ease;
+}
+
+.home-showcase__btn:hover {
+    transform: translateY(-2px);
+}
+
+.home-showcase__btn--primary {
+    background: #1a1a1a;
+    color: #f5f1ea;
+}
+
+.home-showcase__btn--ghost {
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(8px);
+}
+
+.home-showcase__rails {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    min-height: 120vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.poster-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    will-change: transform;
+    transition: transform 0.08s linear;
+}
+
+.poster-card {
+    position: relative;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 24px;
+    background: #111;
+    aspect-ratio: 2 / 3;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+    transform: translateY(0) scale(1);
+    transition: transform 0.35s ease, box-shadow 0.35s ease, opacity 0.35s ease;
+}
+
+.poster-card:hover,
+.poster-card:focus-visible,
+.poster-card.is-active {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 24px 55px rgba(0, 0, 0, 0.36);
+}
+
+.poster-card__img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.poster-card__overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 1.15rem 1rem 1rem;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.82) 0%,
+            rgba(0, 0, 0, 0.52) 45%,
+            rgba(0, 0, 0, 0) 100%);
+    color: #fff;
+    text-align: left;
+}
+
+.poster-card__overlay h4 {
+    margin: 0.3rem 0;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.poster-card__overlay span,
+.poster-card__type {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.poster-card__type {
+    margin: 0 0 0.25rem;
+}
+
+rail-up {
+    animation: scrollUp 20s linear infinite;
+}
+
+rail-down {
+    animation: scrollDown 20s linear infinite;
+}
+
+@media (max-width: 1024px) {
+    .home-showcase {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .home-showcase__intro {
+        position: relative;
+        top: 0;
+        padding-right: 0;
+        max-width: 100%;
+    }
+
+    .home-showcase__rails {
+        min-height: auto;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .home-showcase {
+        padding: 3rem 0 4rem;
+    }
+
+    .home-showcase__rails {
+        grid-template-columns: 1fr;
+    }
+
+    .poster-rail--down {
+        display: none;
+    }
+
+    .home-showcase__title {
+        font-size: clamp(2.4rem, 12vw, 4rem);
+    }
+}
