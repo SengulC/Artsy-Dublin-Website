@@ -19,6 +19,7 @@ import PostsPage from "./pages/PostsPage";
 import FilterBar from "./components/events/FilterBar";
 import MarqueeText from "./components/layout/MarqueeText";
 import Register from "./pages/register";
+import ForgetPassword from "./pages/ForgetPassword";
 import TeamPage from "./pages/TeamPage"
 import Inbox from "./pages/Inbox"
 import Me from "./pages/Me";
@@ -532,6 +533,12 @@ function App() {
           <div className="auth-layout">
             <div className="auth-bg-blur" aria-hidden="true"><HomePage /></div>
             <Register />
+          </div>
+        } />
+        <Route path="/forget-password" element={
+          <div className="auth-layout">
+            <div className="auth-bg-blur" aria-hidden="true"><HomePage /></div>
+            <ForgetPassword />
           </div>
         } />
         <Route path="/team" element={<TeamPage />} />

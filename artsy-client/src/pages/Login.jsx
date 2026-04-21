@@ -151,7 +151,7 @@ export default function Login() {
               </button>
             </div>
             <div className="passwordMeta">
-              <a href="#" className="forgotLink">
+              <a href="/forget-password" className="forgotLink">
                 Forgot Password?
               </a>
             </div>
