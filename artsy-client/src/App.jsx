@@ -5,9 +5,6 @@ import { checkSaves } from "./utils/postHelpers";
 import HomeIntroLoader from "./components/layout/HomeIntroLoader";
 
 import Login from './pages/Login'
-
-import bgl from './assets/images/bgl.png'
-
 import Header from "./components/layout/Header"
 import Footer from "./components/layout/Footer"
 import mockEvents from "./mock/events";
@@ -44,7 +41,7 @@ function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [savedEventIds, setSavedEventIds] = useState([]);
-  const { dbUser } = useAuth();
+  const { dbUser, authLoading } = useAuth();
   const navigate = useNavigate();
   const showcaseRef = useRef(null);
   const [showcaseProgress, setShowcaseProgress] = useState(0);
@@ -64,18 +61,26 @@ function HomePage() {
 
 
   useEffect(() => {
+    if (authLoading) return;
     async function loadEvents() {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/ad-events`);
+        let url = dbUser?.userId
+          ? `/ad-events/personalizedEvents/${dbUser.userId}`
+          : `/ad-events`;
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch events");
+        let res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch events");
+        let data = await res.json();
+
+        // fallback if personalized returns empty
+        if (data.length === 0 && dbUser?.userId) {
+          const fallbackRes = await fetch(`/ad-events`);
+          if (!fallbackRes.ok) throw new Error("Failed to fetch events");
+          data = await fallbackRes.json();
         }
-
-        const data = await res.json();
 
         const normalizedEvents = data.map((event, index) => ({
           eventId: event.eventId ?? index,
@@ -102,7 +107,7 @@ function HomePage() {
     }
 
     loadEvents();
-  }, []);
+  }, [dbUser?.userId, authLoading]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -259,8 +264,63 @@ function HomePage() {
         titleTop="ARTSY DUBLIN"
         titleMiddle="FIND YOUR"
         titleBottom="NEXT EVENT"
-        onFinish={handleIntroFinish}
       />
+      {/* <div>
+        <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <div className="section-bg-text">Artsy<br></br>Dublin</div>
+        <div className="container">
+
+          <div className="home-hero">
+            <div className="home-hero__info"
+            ><h1 className="home-hero__title">What’s On</h1>
+              <p className="home-hero__subtitle">
+                Discover events, films, comedy and more across Dublin
+              </p>
+            </div>
+
+            <FilterBar
+              activeCategories={activeCategories}
+              setActiveCategories={setActiveCategories}
+              activeDate={activeDate}
+              setActiveDate={setActiveDate}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+            />
+          </div>
+
+          {loading && <p className="status-message">Loading events...</p>}
+          {error && <p className="status-message error">{error}</p>}
+          {filteredEvents.length === 0 && !loading && (
+            <p className="status-message">No matching events found.</p>
+          )}
+
+          <div className="events_grid">
+            {filteredEvents.slice(0, visibleCount).map((event) => (
+              <EventCard
+                key={event.eventId}
+                event={event}
+              // variant={getCardVariant(index)}
+              />
+            ))}
+          </div>
+          {visibleCount < filteredEvents.length && (
+            <div className="show-more-wrap">
+              <button
+                className="show-more-btn"
+                onClick={() => setVisibleCount(visibleCount + 8)}
+              >
+                Show More
+              </button>
+            </div>
+          )}
+
+          <MarqueeText />
+
+          <CalendarSection events={events} savedEventIds={savedEventIds} />
+          <Footer />
+        </div>
+
+      </div> */}
 
       <div className={`home-page-shell ${introDone ? "intro-done" : ""}`}>
 

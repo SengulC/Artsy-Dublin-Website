@@ -8,7 +8,6 @@ export default function Me() {
   const { firebaseUser, dbUser, refreshAuth } = useAuth();
   const navigate = useNavigate();
 
-  console.log(firebaseUser);
   if (firebaseUser === undefined) return <p>Loading...</p>;
   if (!firebaseUser) {
     navigate("/login");
