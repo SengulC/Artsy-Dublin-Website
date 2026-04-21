@@ -102,9 +102,6 @@ function EventDetailPage() {
     const { id } = useParams();
     const { dbUser } = useAuth();
 
-    console.log("dbUser:", dbUser);
-    // const API_BASE_URL =
-    //     import.meta.env.VITE_API_URL || "http://localhost:3005";
     function getBreadcrumbText(event) {
         const parts = ["All Events"];
 
@@ -137,8 +134,6 @@ function EventDetailPage() {
             });
 
             const data = await res.json();
-            console.log("save status:", res.status);
-            console.log("save response:", data);
 
             if (!res.ok) {
                 throw new Error(data?.error || "Save toggle failed");
@@ -187,14 +182,12 @@ function EventDetailPage() {
                     attendCount: event.attendCount ?? 0,
                 }));
                 const res = await fetch(`/ad-events/event/${id}`);
-                console.log("detail response status:", res.status);
 
                 if (!res.ok) {
                     throw new Error("Failed to fetch event");
                 }
 
                 const data = await res.json();
-                console.log("detail fetched data:", data);
 
                 const normalizedEvent = {
                     eventId: data.eventId ?? Number(id),
@@ -253,11 +246,8 @@ function EventDetailPage() {
         if (!event?.eventId || !dbUser?.userId) return;
 
         const allIds = [event.eventId, ...relatedEvents.map((e) => e.eventId)];
-        console.log("allIds:", allIds);
 
         checkSaves(allIds).then((savedIds) => {
-            console.log("savedIds:", savedIds, "current eventId:", event.eventId);
-
             setSaved(savedIds.includes(event.eventId));
             setSavedRelatedIds(savedIds);
         }).catch((err) => {
