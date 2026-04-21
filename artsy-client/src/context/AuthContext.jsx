@@ -12,7 +12,6 @@ export function AuthProvider({ children }) {
 
   //refresh authentication info in cookie
   const refreshAuth = useCallback(async () => {
-    console.log("checking session");
     try {
       const res = await fetch(`/ad-auth/check-auth`, { credentials: "include" });
       if (res.ok) {

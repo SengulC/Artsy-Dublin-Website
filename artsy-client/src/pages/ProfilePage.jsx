@@ -166,12 +166,10 @@ export default function ProfilePage() {
   /* ── save bio via PATCH ── */
   async function saveBio() {
     if (bioInput === bio) { setEditingBio(false); 
-      //console.log("no edit");
       return; }
     setBioError(null);
     setBioSaving(true);
     try {
-      //console.log("i am trying to edit");
       const res = await fetch(`/ad-users/${username}/bio`, {
         method: "PATCH",
         credentials: "include",
@@ -179,7 +177,6 @@ export default function ProfilePage() {
         body: JSON.stringify({ bio: bioInput }),
       });
       if (res.ok) { 
-        //console.log("edit bio successful");
         setBio(bioInput); setEditingBio(false); }
     } catch(err){
       setBioError(err.message);

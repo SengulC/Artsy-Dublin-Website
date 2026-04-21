@@ -35,7 +35,6 @@ export default function Chat() {
       if (res.status === 403) throw new Error("You are not part of this conversation");
       if (!res.ok) throw new Error("Failed to load messages");
       const data = await res.json();
-      console.log(data);
       setMessages(data);
     } catch (err) {
       setError(err.message);
@@ -121,13 +120,11 @@ export default function Chat() {
     e.preventDefault();
     setSendError(null);
     const text = inputText.trim();
-    //console.log("get the send text");
     if (!text) return;
     if (text.length > 2000) {
       setSendError("Message too long (max 2000 characters)");
       return;
     }
-    //console.log("socket connected?", socket.connected, "convId:", convId);
     socket.emit("send_message", { conversationId: convId, content: text });
     setInputText("");
   }
