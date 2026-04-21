@@ -1,4 +1,5 @@
 //this is for postcard element in PostsPage
+//peace version
 
 //import react functions
 import { Link } from "react-router-dom";
@@ -78,7 +79,7 @@ function PostCard({ post, liked = false, likeCount, onLike }) {
                             aria-label={liked ? "Unlike" : "Like"}
                         >
                             <FontAwesomeIcon icon={liked ? faHeartSolid : faHeartRegular} />
-                            {(likeCount ?? post.likeCount)?.toLocaleString()} likes
+                            {(Number(likeCount ?? post.likeCount) || 0).toLocaleString()} likes
                         </button>
                         <span className="post-card__comment-count">
                             <FontAwesomeIcon icon={faComment} /> {post.commentCount}
